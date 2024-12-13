@@ -1,327 +1,154 @@
-<!doctype html>
+
+<!DOCTYPE html>
 <html lang="ja">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My GitHub Pages</title>
     <style>
-        #bodyId {
-            font-family: Arial, sans-serif;
-            margin: 0 auto;
+        * {
+            margin: 0;
             padding: 0;
+            box-sizing: border-box;
         }
 
-        .container {
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
             max-width: 800px;
-            margin: 20px auto;
+            margin: 0 auto;
             padding: 20px;
-            background-color: #fff;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        header {
+            text-align: center;
+            padding: 60px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        section {
+            margin-bottom: 40px;
+        }
+
+        h2 {
+            color: #4a5568;
+            margin-bottom: 20px;
+        }
+
+        p {
+            margin-bottom: 15px;
+        }
+
+        .projects {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .project-card {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            transition: transform 0.2s;
+        }
+
+        .project-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .contact {
+            text-align: center;
+            background: #f7fafc;
+            padding: 40px;
             border-radius: 8px;
         }
 
-        .button-container {
-            margin: 20px 0;
+        .social-links {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
         }
 
-        button {
-            font-size: 14px;
-            margin: 0 10px;
-            padding: 5px 15px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s ease;
+        .social-links a {
+            color: #4a5568;
+            text-decoration: none;
+            font-weight: 500;
         }
 
-        #startButton {
-            background-color: #4CAF50;
-            color: white;
+        .social-links a:hover {
+            color: #667eea;
         }
 
-        #stopButton {
-            background-color: #f44336;
-            color: white;
-        }
+        @media (max-width: 600px) {
+            header {
+                padding: 40px 20px;
+            }
 
-        #resetButton {
-            background-color: #008CBA;
-            color: white;
-        }
-
-        button:hover {
-            opacity: 0.8;
-        }
-
-        .svgContainer {
-            margin: auto 0;
-        }
-
-        svg {
-            display: block;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            h1 {
+                font-size: 2em;
+            }
         }
     </style>
 </head>
+<body>
+    <header>
+        <h1>Involute Gear Soft</h1>
+        <div class="subtitle">Gear Engineering</div>
+    </header>
 
-<body id="bodyid">
-    <div class="container">
-        <div class="button-container">
-            <span>歯数(z):</span><input type="number" id="zInput" value="20" width="50" />
-            <button id="startButton">スタート</button>
-            <button id="stopButton">ストップ</button>
-            <button id="resetButton">リセット</button>
-        </div>
-        <div class="svgContainer">
-            <svg width="400" height="600" version="1.1" xmlns="http://www.w3.org/2000/svg"
-                xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 300 450">
-                <defs>
-                    <path id="circlePath" d="M 0 -7.6 A 7.6 7.6 0 1 1 0 7.6 A 7.6 7.6 0 1 1 0 -7.6" />
-                    <path id="rackPath"
-                        d="M -61.544 -7.6 L -60.256 -7.6  A 7.6 7.6 0 0 1 -53.115 -2.6 L -38.55 37.4 -30.16 37.4 L -21.73 37.4 -7.14 -2.6 A 7.6 7.6 0 0 1 0 -7.6 L 1.255 -7.6" />
-                </defs>
+    <main>
+        <section>
+            <h2>About Me</h2>
+            <p>
+                歯車好きの元クルマエンジニア
+            </p>
+        </section>
 
-                <g transform="translate(150,300) scale(1,-1)">
-                    <circle id="pitchCircle" cx="0" cy="0" r="200" fill="none" stroke-width="1" stroke-dasharray="None"
-                        stroke="#D0021B" opacity="0.3" />
+        <section>
+            <h2>Projects</h2>
+            <div class="projects">
+                <div class="project-card">
+                    <h3>Project 1</h3>
+                    <p><a href="https://https://involutegear.github.io/home/index.html">DXL Viewer and SVG Converter</a></p>
+                </div>
+                <div class="project-card">
+                    <h3>Project 2</h3>
+                    <p><a href="./planetarygearset.html">遊星歯車シミュレータ</p>
+                </div>
+                <div class="project-card">
+                    <h3>Project 3</h3>
+                    <p>WordPressテーマのカスタマイズ</p>
+                </div>
+            </div>
+        </section>
 
-                    <circle cx="0" cy="0" r="3" fill="#FF6B6B" />
-
-                    <g id="movingCircle" >
-                        <use xlink:href="#circlePath" fill="url(#gradient)" stroke="#D0021B" stroke-width="1.5" />
-                        <use xlink:href="#rackPath" fill="none" stroke="#7ED321" stroke-width="1.5" />
-                        <line id="centerLine" x1="115.86" y1="-75.87" x2="146.019475" y2="106.724459" stroke="#FF6B6B"
-                            stroke-width="1" opacity="0" />
-                        <circle id="mcircle" cx="0" cy="0" r="3" fill="#FF6B6B" />
-                    </g>
-<g id="gearGroupe" transform="translate(-220,-220)">
- <path id="gear" d="M 192.62 392.85 193.74 393.02 193.74 393.02 197.96 394.84 200.87 398.43 202.22 402.84 202.45 407.38 202.62 410.94 203.17 414.54 203.98 418.15 205.02 421.78 206.26 425.41 207.70 429.04 209.31 432.66 211.10 436.28 213.05 439.89 220.00 440.00 220.00 440.00 226.95 439.89 228.90 436.28 230.69 432.66 232.30 429.04 233.74 425.41 234.98 421.78 236.02 418.15 236.83 414.54 237.38 410.94 237.55 407.38 237.78 402.84 239.13 398.43 242.04 394.84 246.26 393.02 246.26 393.02 247.38 392.85 248.49 392.67 248.49 392.67 253.07 393.09 256.94 395.61 259.59 399.38 261.21 403.63 262.48 406.97 264.11 410.22 266.00 413.41 268.10 416.53 270.41 419.60 272.89 422.61 275.55 425.56 278.37 428.45 281.34 431.28 287.98 429.23 287.98 429.23 294.56 426.98 295.30 422.95 295.88 418.95 296.30 415.00 296.54 411.11 296.60 407.27 296.47 403.50 296.12 399.82 295.53 396.23 294.60 392.79 293.41 388.40 293.33 383.79 294.99 379.47 298.44 376.43 298.44 376.43 299.45 375.93 300.45 375.41 300.45 375.41 304.94 374.40 309.40 375.60 313.09 378.37 315.94 381.91 318.18 384.69 320.73 387.28 323.51 389.73 326.48 392.05 329.62 394.25 332.91 396.35 336.35 398.33 339.93 400.21 343.63 401.98 349.31 397.98 349.31 397.98 354.87 393.81 354.33 389.74 353.65 385.77 352.82 381.88 351.85 378.10 350.72 374.44 349.43 370.89 347.97 367.49 346.29 364.26 344.34 361.28 341.85 357.47 340.36 353.11 340.60 348.50 342.94 344.54 342.94 344.54 343.74 343.74 344.54 342.94 344.54 342.94 348.50 340.60 353.11 340.36 357.47 341.85 361.28 344.34 364.26 346.29 367.49 347.97 370.89 349.43 374.44 350.72 378.10 351.85 381.88 352.82 385.77 353.65 389.74 354.33 393.81 354.87 397.98 349.31 397.98 349.31 401.98 343.63 400.21 339.93 398.33 336.35 396.35 332.91 394.25 329.62 392.05 326.48 389.73 323.51 387.28 320.73 384.69 318.18 381.91 315.94 378.37 313.09 375.60 309.40 374.40 304.94 375.41 300.45 375.41 300.45 375.93 299.45 376.43 298.44 376.43 298.44 379.47 294.99 383.79 293.33 388.40 293.41 392.79 294.60 396.23 295.53 399.82 296.12 403.50 296.47 407.27 296.60 411.11 296.54 415.00 296.30 418.95 295.88 422.95 295.30 426.98 294.56 429.23 287.98 429.23 287.98 431.28 281.34 428.45 278.37 425.56 275.55 422.61 272.89 419.60 270.41 416.53 268.10 413.41 266.00 410.22 264.11 406.97 262.48 403.63 261.21 399.38 259.59 395.61 256.94 393.09 253.07 392.67 248.49 392.67 248.49 392.85 247.38 393.02 246.26 393.02 246.26 394.84 242.04 398.43 239.13 402.84 237.78 407.38 237.55 410.94 237.38 414.54 236.83 418.15 236.02 421.78 234.98 425.41 233.74 429.04 232.30 432.66 230.69 436.28 228.90 439.89 226.95 440.00 220.00 440.00 220.00 439.89 213.05 436.28 211.10 432.66 209.31 429.04 207.70 425.41 206.26 421.78 205.02 418.15 203.98 414.54 203.17 410.94 202.62 407.38 202.45 402.84 202.22 398.43 200.87 394.84 197.96 393.02 193.74 393.02 193.74 392.85 192.62 392.67 191.51 392.67 191.51 393.09 186.93 395.61 183.06 399.38 180.41 403.63 178.79 406.97 177.52 410.22 175.89 413.41 174.00 416.53 171.90 419.60 169.59 422.61 167.11 425.56 164.45 428.45 161.63 431.28 158.66 429.23 152.02 429.23 152.02 426.98 145.44 422.95 144.70 418.95 144.12 415.00 143.70 411.11 143.46 407.27 143.40 403.50 143.53 399.82 143.88 396.23 144.47 392.79 145.40 388.40 146.59 383.79 146.67 379.47 145.01 376.43 141.56 376.43 141.56 375.93 140.55 375.41 139.55 375.41 139.55 374.40 135.06 375.60 130.60 378.37 126.91 381.91 124.06 384.69 121.82 387.28 119.27 389.73 116.49 392.05 113.52 394.25 110.38 396.35 107.09 398.33 103.65 400.21 100.07 401.98 96.37 397.98 90.69 397.98 90.69 393.81 85.13 389.74 85.67 385.77 86.35 381.88 87.18 378.10 88.15 374.44 89.28 370.89 90.57 367.49 92.03 364.26 93.71 361.28 95.66 357.47 98.15 353.11 99.64 348.50 99.40 344.54 97.06 344.54 97.06 343.74 96.26 342.94 95.46 342.94 95.46 340.60 91.50 340.36 86.89 341.85 82.53 344.34 78.72 346.29 75.74 347.97 72.51 349.43 69.11 350.72 65.56 351.85 61.90 352.82 58.12 353.65 54.23 354.33 50.26 354.87 46.19 349.31 42.02 349.31 42.02 343.63 38.02 339.93 39.79 336.35 41.67 332.91 43.65 329.62 45.75 326.48 47.95 323.51 50.27 320.73 52.72 318.18 55.31 315.94 58.09 313.09 61.63 309.40 64.40 304.94 65.60 300.45 64.59 300.45 64.59 299.45 64.07 298.44 63.57 298.44 63.57 294.99 60.53 293.33 56.21 293.41 51.60 294.60 47.21 295.53 43.77 296.12 40.18 296.47 36.50 296.60 32.73 296.54 28.89 296.30 25.00 295.88 21.05 295.30 17.05 294.56 13.02 287.98 10.77 287.98 10.77 281.34 8.72 278.37 11.55 275.55 14.44 272.89 17.39 270.41 20.40 268.10 23.47 266.00 26.59 264.11 29.78 262.48 33.03 261.21 36.37 259.59 40.62 256.94 44.39 253.07 46.91 248.49 47.33 248.49 47.33 247.38 47.15 246.26 46.98 246.26 46.98 242.04 45.16 239.13 41.57 237.78 37.16 237.55 32.62 237.38 29.06 236.83 25.46 236.02 21.85 234.98 18.22 233.74 14.59 232.30 10.96 230.69 7.34 228.90 3.72 226.95 0.11 220.00 0.00 220.00 0.00 213.05 0.11 211.10 3.72 209.31 7.34 207.70 10.96 206.26 14.59 205.02 18.22 203.98 21.85 203.17 25.46 202.62 29.06 202.45 32.62 202.22 37.16 200.87 41.57 197.96 45.16 193.74 46.98 193.74 46.98 192.62 47.15 191.51 47.33 191.51 47.33 186.93 46.91 183.06 44.39 180.41 40.62 178.79 36.37 177.52 33.03 175.89 29.78 174.00 26.59 171.90 23.47 169.59 20.40 167.11 17.39 164.45 14.44 161.63 11.55 158.66 8.72 152.02 10.77 152.02 10.77 145.44 13.02 144.70 17.05 144.12 21.05 143.70 25.00 143.46 28.89 143.40 32.73 143.53 36.50 143.88 40.18 144.47 43.77 145.40 47.21 146.59 51.60 146.67 56.21 145.01 60.53 141.56 63.57 141.56 63.57 140.55 64.07 139.55 64.59 139.55 64.59 135.06 65.60 130.60 64.40 126.91 61.63 124.06 58.09 121.82 55.31 119.27 52.72 116.49 50.27 113.52 47.95 110.38 45.75 107.09 43.65 103.65 41.67 100.07 39.79 96.37 38.02 90.69 42.02 90.69 42.02 85.13 46.19 85.67 50.26 86.35 54.23 87.18 58.12 88.15 61.90 89.28 65.56 90.57 69.11 92.03 72.51 93.71 75.74 95.66 78.72 98.15 82.53 99.64 86.89 99.40 91.50 97.06 95.46 97.06 95.46 96.26 96.26 95.46 97.06 95.46 97.06 91.50 99.40 86.89 99.64 82.53 98.15 78.72 95.66 75.74 93.71 72.51 92.03 69.11 90.57 65.56 89.28 61.90 88.15 58.12 87.18 54.23 86.35 50.26 85.67 46.19 85.13 42.02 90.69 42.02 90.69 38.02 96.37 39.79 100.07 41.67 103.65 43.65 107.09 45.75 110.38 47.95 113.52 50.27 116.49 52.72 119.27 55.31 121.82 58.09 124.06 61.63 126.91 64.40 130.60 65.60 135.06 64.59 139.55 64.59 139.55 64.07 140.55 63.57 141.56 63.57 141.56 60.53 145.01 56.21 146.67 51.60 146.59 47.21 145.40 43.77 144.47 40.18 143.88 36.50 143.53 32.73 143.40 28.89 143.46 25.00 143.70 21.05 144.12 17.05 144.70 13.02 145.44 10.77 152.02 10.77 152.02 8.72 158.66 11.55 161.63 14.44 164.45 17.39 167.11 20.40 169.59 23.47 171.90 26.59 174.00 29.78 175.89 33.03 177.52 36.37 178.79 40.62 180.41 44.39 183.06 46.91 186.93 47.33 191.51 47.33 191.51 47.15 192.62 46.98 193.74 46.98 193.74 45.16 197.96 41.57 200.87 37.16 202.22 32.62 202.45 29.06 202.62 25.46 203.17 21.85 203.98 18.22 205.02 14.59 206.26 10.96 207.70 7.34 209.31 3.72 211.10 0.11 213.05 0.00 220.00 0.00 220.00 0.11 226.95 3.72 228.90 7.34 230.69 10.96 232.30 14.59 233.74 18.22 234.98 21.85 236.02 25.46 236.83 29.06 237.38 32.62 237.55 37.16 237.78 41.57 239.13 45.16 242.04 46.98 246.26 46.98 246.26 47.15 247.38 47.33 248.49 47.33 248.49 46.91 253.07 44.39 256.94 40.62 259.59 36.37 261.21 33.03 262.48 29.78 264.11 26.59 266.00 23.47 268.10 20.40 270.41 17.39 272.89 14.44 275.55 11.55 278.37 8.72 281.34 10.77 287.98 10.77 287.98 13.02 294.56 17.05 295.30 21.05 295.88 25.00 296.30 28.89 296.54 32.73 296.60 36.50 296.47 40.18 296.12 43.77 295.53 47.21 294.60 51.60 293.41 56.21 293.33 60.53 294.99 63.57 298.44 63.57 298.44 64.07 299.45 64.59 300.45 64.59 300.45 65.60 304.94 64.40 309.40 61.63 313.09 58.09 315.94 55.31 318.18 52.72 320.73 50.27 323.51 47.95 326.48 45.75 329.62 43.65 332.91 41.67 336.35 39.79 339.93 38.02 343.63 42.02 349.31 42.02 349.31 46.19 354.87 50.26 354.33 54.23 353.65 58.12 352.82 61.90 351.85 65.56 350.72 69.11 349.43 72.51 347.97 75.74 346.29 78.72 344.34 82.53 341.85 86.89 340.36 91.50 340.60 95.46 342.94 95.46 342.94 96.26 343.74 97.06 344.54 97.06 344.54 99.40 348.50 99.64 353.11 98.15 357.47 95.66 361.28 93.71 364.26 92.03 367.49 90.57 370.89 89.28 374.44 88.15 378.10 87.18 381.88 86.35 385.77 85.67 389.74 85.13 393.81 90.69 397.98 90.69 397.98 96.37 401.98 100.07 400.21 103.65 398.33 107.09 396.35 110.38 394.25 113.52 392.05 116.49 389.73 119.27 387.28 121.82 384.69 124.06 381.91 126.91 378.37 130.60 375.60 135.06 374.40 139.55 375.41 139.55 375.41 140.55 375.93 141.56 376.43 141.56 376.43 145.01 379.47 146.67 383.79 146.59 388.40 145.40 392.79 144.47 396.23 143.88 399.82 143.53 403.50 143.40 407.27 143.46 411.11 143.70 415.00 144.12 418.95 144.70 422.95 145.44 426.98 152.02 429.23 152.02 429.23 158.66 431.28 161.63 428.45 164.45 425.56 167.11 422.61 169.59 419.60 171.90 416.53 174.00 413.41 175.89 410.22 177.52 406.97 178.79 403.63 180.41 399.38 183.06 395.61 186.93 393.09 191.51 392.67 191.51 392.67 "
-  fill="pink" stroke="red" stroke-width="0.1" opacity="0.6"/>
-</g>
-                    <g id="trajectory"></g>
-
-                    <line id="dynamicLine" x1="30.159475" y1="182.594459" x2="30.159475" y2="182.594459"
-                        stroke="#4a90e2" stroke-width="0.6" />
-                    <line id="centerLine2" x1="0" y1="0" x2="30.159475" y2="182.594459" stroke="#ff6b6b"
-                        stroke-width="0.6" opacity="0" />
-
-                </g>
-
-                <text id="debugInfo" x="10" y="20" font-family="Arial" font-size="12" fill="black"></text>
-                <script type="text/ecmascript">
-                    let animationInterval;
-                    var maxAngle = 35;
-                    let currentAngle = -maxAngle;
-                    let currentStage = 1;
-                    var z = 20; // Default value
-                    let module = 20;
-                    var rp = module * z / 2;
-                    var centerY = 182.594459 - (200 - rp);
-                    var arcRadius = rp;
-                    var step = 2.5;
-
-                    function animateCircle() {
-                        updateZ(); // Update z value before starting animation
-                        var circle = document.getElementById('movingCircle');
-                        var trajectory = document.getElementById('trajectory');
-                        var circlePath = document.getElementById('circlePath');
-                        var rackPath = document.getElementById('rackPath');
-                        var debugInfo = document.getElementById('debugInfo');
-                        var dynamicLine = document.getElementById('dynamicLine');
-                        var centerLine = document.getElementById('centerLine');
-                        var movingPoint = document.getElementById('mcircle');
-                        var gearGroup= document.getElementById('gearGroup');
-                        var gear = document.getElementById('gear');
-       
-                        rp = module * z / 2;
-                        var centerX = 30.159475;
-                        centerY = 182.594459 - (200 - rp);
-                        pitchCircle.setAttribute("r", rp);
-                        var arcCenterX = 0;
-                        var arcCenterY = 0;
-                        var radius = 7.6;
-
-                        arcRadius = rp;
-                        var step = 2.5;
-                        var duration = 1000; // milliseconds per step
-                        circle.setAttribute
-
-
-                        function createAnimateTransform(type, from, to, dur, fill, additive) {
-                            var animateTransform = document.createElementNS("http://www.w3.org/2000/svg", "animateTransform");
-                            animateTransform.setAttribute("attributeName", "transform");
-                            animateTransform.setAttribute("type", type);
-                            animateTransform.setAttribute("from", from);
-                            animateTransform.setAttribute("to", to);
-                            animateTransform.setAttribute("dur", dur);
-                            animateTransform.setAttribute("fill", fill);
-
-                            animateTransform.setAttribute("additive", additive);
-                            return animateTransform;
-                        }
-
-                        function createTrajectoryPath(obj, x, y, angle) {
-                            var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                            path.setAttribute("d", "M " + x + " " + y + " " + obj.getAttribute("d"));
-                            path.setAttribute("fill", "none");
-                            if (angle == 0) {
-                                path.setAttribute("stroke", "blue");
-                                path.setAttribute("stroke-width", "0.2");
-                                path.setAttribute("opacity", "0.9");
-                            } else {
-                                path.setAttribute("stroke", "gray");
-                                path.setAttribute("stroke-width", "0.3");
-                                path.setAttribute("opacity", "0.9");
-                            }
-                            path.setAttribute("transform", "rotate(" + -angle + "," + arcCenterX + "," + arcCenterY + ") translate(" + x + "," + y + ")");
-                            trajectory.appendChild(path);
-                        }
-
-                        function animateStep(angle, stage) {
-                            if (angle > maxAngle) {
-                                clearInterval(animationInterval);
-                                return;
-                            }
-
-                       if (z==20) {
-                                 gear.setAttribute('opacity', '0.6');
-                       } else {
-                               gear.setAttribute('opacity', '0.0');
-                        }
-                            var radians = angle * Math.PI / 180;
-                            var x, y;
-
-                            if (stage === 1) {
-                                x = centerX - arcRadius * radians;
-                                y = centerY;
-                                var dx = arcRadius * radians;
-
-                                debugInfo.textContent = "Z" + z + " Stage 1: Angle " + angle
-                                var transAnimation = createAnimateTransform(
-                                    "translate",
-                                    centerX + " " + centerY,
-                                    x + " " + y,
-                                    "1s",
-                                    "freeze",
-                                    "replace"
-                                );
-
-                                circle.appendChild(transAnimation);
-                                transAnimation.beginElement();
-
-                                centerLine.setAttribute("x1", 0);
-                                centerLine.setAttribute("y1", 0);
-                                centerLine.setAttribute("x2", 0);
-                                centerLine.setAttribute("y2", 0);
-                                centerLine.setAttribute("opacity", "1");
-                                stage1EndX = x;
-                                stage1EndY = y;
-
-                            } else {
-                                x = centerX - arcRadius * radians;
-                                y = centerY;
-                                dx = arcRadius * radians;
-                                debugInfo.textContent = "Z" + z + " Stage 2: Angle " + angle
-
-                                var transAnimation = createAnimateTransform(
-                                    "translate",
-                                    x + " " + y,
-                                    centerX + " " + centerY,
-                                    "0s",
-                                    "freeze",
-                                    "replace"
-                                );
-
-                                circle.appendChild(transAnimation);
-
-                                transAnimation.beginElement();
-                                var rotateAnimation = createAnimateTransform(
-                                    "rotate",
-                                    -0 + " " + (arcCenterX - x) + " " + (arcCenterY - centerY),
-                                    -angle + " " + (arcCenterX - x) + " " + (arcCenterY - centerY),
-                                    "0.5s",
-                                    "freeze",
-                                    "sum"
-                                );
-
-                                circle.appendChild(rotateAnimation);
-                                rotateAnimation.beginElement();
-
-                                centerLine.setAttribute("x1", 0);
-                                centerLine.setAttribute("y1", 0);
-                                centerLine.setAttribute("x2", -x + arcCenterX);
-                                centerLine.setAttribute("y2", arcCenterY - centerY);
-                                centerLine.setAttribute("opacity", "1");
-                            }
-
-                            createTrajectoryPath(circlePath, x, y, stage === 1 ? 0 : angle);
-                            createTrajectoryPath(rackPath, x, y, stage === 1 ? 0 : angle);
-
-                            currentAngle = angle;
-                            currentStage = stage;
-                        }
-
-                        return animateStep;
-                    }
-
-                    function updateZ() {
-                        animationRunning = false;
-                        z = parseInt(document.getElementById('zInput').value);
-                        if (z < 6) {
-                            z = 6;
-                            document.getElementById('zInput').value = 1;
-                        } else if (z > 25) {
-                            z = 25;
-                            document.getElementById('zInput').value = 100;
-                        }
-                        rp = module * z / 2;
-
-                        centerY = 182.594459 - (200 - rp);
-                        pitchCircle.setAttribute("r", rp);
-                        arcRadius = rp;
-                    }
-
-                    const animate = animateCircle();
-
-                    document.getElementById('startButton').addEventListener('click', function () {
-                        if (!animationInterval) {
-                            animationInterval = setInterval(function () {
-                                if (currentStage === 1) {
-                                    animate(currentAngle, 2);
-                                } else {
-                                    animate(currentAngle + step, 1);
-                                }
-                            }, 1500);
-                        }
-                    });
-
-                    document.getElementById('stopButton').addEventListener('click', function () {
-                        clearInterval(animationInterval);
-                        animationInterval = null;
-                    });
-
-                    document.getElementById('resetButton').addEventListener('click', function () {
-                        clearInterval(animationInterval);
-                        animationInterval = null;
-                        currentAngle = -maxAngle;
-                        currentStage = 1;
-
-                        // Reset SVG elements
-                        document.getElementById('movingCircle').setAttribute('transform', '');
-                        document.getElementById('trajectory').innerHTML = '';
-
-                        document.getElementById('debugInfo').textContent = '';
-                        document.getElementById('centerLine').setAttribute('opacity', '0');
-                    });
-
-                    document.getElementById('zInput').addEventListener('change', updateZ);
- 　　　　　
-
-                </script>
-            </svg>
-        </div>
-    </div>
+        <section class="contact">
+            <h2>Contact</h2>
+            <p>お気軽にご連絡ください</p>
+            <div class="social-links">
+                <a href="https://github.com/yourusername">GitHub</a>
+                <a href="https://twitter.com/yourusername">Twitter</a>
+                <a href="mailto:your.email@example.com">Email</a>
+            </div>
+        </section>
+    </main>
 </body>
-
 </html>

@@ -1,0 +1,2941 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DXF Viewer</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f0f0f0;
+            padding: 20px;
+        }
+
+        .header {
+            background-color: #007bff;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .filename {
+            font-size: 18px;
+            color: #666;
+        }
+
+        .container {
+            display: flex;
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            gap: 20px;
+        }
+
+        .svg-area {
+            flex: 1;
+            min-width: 80%;
+            overflow: hidden;
+            /* SVGエリアのスクロールを防止 */
+        }
+
+
+        .control-group input:hover,
+        .control-group button:hover {
+            border-color: #999;
+        }
+
+        .control-group input:focus,
+        .control-group button:focus {
+            outline: none;
+            border-color: #666;
+        }
+
+        .dropzone {
+            border: 2px dashed #007bff;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            background: #f8fafc;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .dropzone:hover {
+            background: #f0f7ff;
+            border-color: #0056b3;
+        }
+
+        .dropzone.dragover {
+            background: #e0f2fe;
+            border-color: #3b82f6;
+        }
+
+
+        .controls {
+            flex: 1;
+            /* コントロールエリアの幅を調整 */
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            /* コントロールを縦に並べる */
+            min-width: 300px;
+            /* コントロールエリアの最小幅を設定 */
+            max-width: 400px;
+            /* コントロールエリアの最大幅を設定 */
+        }
+
+        .controls>* {
+            margin-bottom: 8px;
+        }
+
+        .controls>*:last-child {
+            margin-bottom: 0px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .control-group h3 {
+            margin-bottom: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #475569;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 4px;
+        }
+
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .layer-control-area .control-group {
+            flex-direction: column;
+            margin-bottom: 0;
+        }
+
+        .layer-control-area .control-group h3 {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .layer-control-area .layer-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+            gap: 4px;
+        }
+
+        .layer-control-area .layer-item>* {
+            flex: 1;
+        }
+
+        .layer-control-area .layer-item label {
+            font-size: 12px;
+            color: #475569;
+            font-weight: 500;
+            min-width: 40px;
+            margin-right: 0px;
+        }
+
+        .layer-control-area .layer-item input[type="color"] {
+            padding: 0;
+            width: 40px;
+            height: 25px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0px;
+
+        }
+
+        .layer-control-area .layer-item input[type="number"],
+        .layer-control-area .layer-item input[type="checkbox"] {
+            width: 40px;
+            padding: 5px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            font-size: 14px;
+            margin: 0px;
+        }
+
+        .layer-control-area .layer-item input[type="checkbox"] {
+            width: 20px;
+            padding: 0;
+        }
+
+        .control-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .control-item label {
+            font-size: 14px;
+            color: #475569;
+            font-weight: 500;
+            min-width: 100px;
+            margin-right: 10px;
+            flex: 1;
+            /* ラベルを柔軟に伸ばす */
+        }
+
+        .control-item input[type="color"] {
+            padding: 0;
+            width: 60px;
+            height: 25px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .control-item input[type="select"],
+        .control-item input[type="number"],
+        .control-item input[type="checkbox"] {
+            width: 60px;
+            padding: 5px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .control-item input[type="checkbox"] {
+            width: 20px;
+            padding: 0;
+        }
+
+        .control-button {
+            width: 100%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 8px;
+        }
+
+        .control-button:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+
+        .control-button.active {
+            background: #e0f2fe;
+            border-color: #3b82f6;
+            color: #1d4ed8;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #475569;
+            text-align: left;
+            padding: 12px 16px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e2e8f0;
+            color: #64748b;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background: #f8fafc;
+        }
+
+        .grid-line {
+            stroke: #e2e8f0;
+            stroke-width: 0.1;
+        }
+
+        .axis-line {
+            stroke: #94a3b8;
+            stroke-width: 0.1;
+        }
+
+        .measurement {
+            position: absolute;
+            pointer-events: none;
+            font-size: 12px;
+            color: #475569;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 2px 4px;
+            border-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .control-area {
+                width: 100%;
+            }
+
+            .control-group {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .control-button {
+                width: auto;
+                flex: 1;
+            }
+        }
+
+        svg path,
+        svg line,
+        svg circle {
+            transition: stroke 0.3s, fill 0.3s;
+        }
+
+        svg path:hover,
+        svg line:hover,
+        svg circle:hover {
+            stroke: #ff5722;
+            fill: #ffccbc;
+        }
+
+        svg path.dragover,
+        svg line:hover,
+        svg circle:hover {
+            stroke: #ff5722;
+            fill: #ffccbc;
+        }
+
+        .info-area {
+            display: none;
+        }
+
+        svg:hover+.info-area {
+            display: block;
+        }
+
+        /* svg circle:hover,
+        svg arc:hover,
+        svg ellipse:hover,
+        svg polyline:hover,
+        svg *:hover {
+            stroke: #ff5722;
+            fill: #ffccbc;
+        } */
+
+        .info-area {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            width: 200px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header" id="header">
+        DXF Viewer
+    </div>
+
+    <div class="filename" id="filename"></div>
+
+    <div class="container">
+        <div class="svg-area">
+            <div id="dropzone" class="dropzone">
+                <p>DXFファイルをドラッグ＆ドロップするか、クリックしてファイルを選択してください</p>
+            </div>
+            <div class="graph-container">
+                <svg id="graph" preserveAspectRatio="xMidYMid meet"></svg>
+                <div class="info-area" id="infoArea">
+                    <h3>Shape Information</h3>
+                    <p>Select a shape to see details.</p>
+                </div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>要素ID</th>
+                        <th>タイプ</th>
+                        <th>X座標</th>
+                        <th>Y座標</th>
+                        <th>データ</th>
+                    </tr>
+                </thead>
+                <tbody id="pointsTable">
+                </tbody>
+            </table>
+
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <button class="control-button" id="toggleGrid">⊞ グリッド表示</button>
+                <button class="control-button" id="toggleAxis">↹ 軸表示</button>
+                <button class="control-button" id="toggleMeasure">📏 計測</button>
+                <button class="control-button" id="resetView">⟲ リセット</button>
+                <button class="control-button" id="exportCsv">⬇ CSV出力</button>
+                <button class="control-button" id="exportSvg">⬇ SVG出力</button>
+            </div>
+            <div class="control-item">
+                <label for="labelDisplay">ラベル表示:</label>
+                <input type="checkbox" id="labelDisplay">
+            </div>
+            <div class="control-item">
+                <label for="fontSize">ラベルサイズ:</label>
+                <input type="number" id="fontSize" class="input-number" min="0.5" max="20" step="0.1" value="5">
+            </div>
+            <div class="control-item">
+                <label for="maxStrokeWidth">最大線幅:</label>
+                <input type="number" id="maxStrokeWidth" class="input-number" min="0.01" max="20" step="0.1" value="5">
+            </div>
+            <div class="control-item">
+                <label for="fontColor">ラベルの色:</label>
+                <input type="color" id="fontColor" class="color-picker" value="#333333">
+            </div>
+            <div class="layer-control-area">
+                <!-- ここに動的に生成されるコントロールが入る -->
+            </div>
+            <div class="control-area">
+                <!-- ここに動的に生成されるコントロールが入る -->
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+    <script>
+        function updateLayerStyle(layer, property, value) {
+            const elements = document.querySelectorAll(`.layer-${layer}`);
+            elements.forEach(element => {
+                element.style[property] = value;
+            });
+        }
+        function sanitizeLayerName(name) {
+            return name.replace(/[^a-zA-Z0-9_]/g, '_');
+        }
+        function addClickEventToElement(element, info) {
+            element.addEventListener('click', () => {
+                displayShapeInfo(info);
+            });
+        }
+        function displayShapeInfo(info) {
+            const infoArea = document.getElementById('infoArea');
+            infoArea.innerHTML = `
+            <h3>Shape Information</h3>
+            <p><strong>Type:</strong> ${info.type}</p>
+            <p><strong>ID:</strong> ${info.id}</p>
+            <p><strong>Coordinates:</strong> ${info.coordinates}</p>
+            <p><strong>Additional Data:</strong> ${info.additionalData}</p>
+        `;
+
+        }
+        function createLayerControls(layers) {
+            const controlArea = document.querySelector('.layer-control-area');
+            controlArea.innerHTML = '';
+            layers.forEach(layer => {
+                const sanitizedLayer = sanitizeLayerName(layer)
+                const container = document.createElement('div');
+                container.className = 'control-group';
+                container.innerHTML = `<h3>${layer}</h3>`;
+
+                const colorInput = document.createElement('input');
+                colorInput.type = 'color';
+                colorInput.value = '#000000'; // Default color
+                colorInput.id = `${layer}-color`;
+                container.appendChild(colorInput);
+
+                const strokeWidthInput = document.createElement('input');
+                strokeWidthInput.type = 'number';
+                strokeWidthInput.value = 1; // Default stroke width
+                strokeWidthInput.min = 0.1;
+                strokeWidthInput.max = 10;
+                strokeWidthInput.step = 0.1;
+                strokeWidthInput.id = `${layer}-strokeWidth`;
+                container.appendChild(strokeWidthInput);
+
+                const displayCheckbox = document.createElement('input');
+                displayCheckbox.type = 'checkbox';
+                displayCheckbox.id = `${layer}-display`;
+                displayCheckbox.checked = true;
+                container.appendChild(displayCheckbox);
+
+
+                displayCheckbox.addEventListener('change', (event) => {
+                    console.log(`Layer ${layer} toggle: ${event.target.checked}`); // 追加
+                    const elements = document.querySelectorAll(`.layer-${layer}`);
+                    console.log(`Found ${elements.length} elements for layer ${layer}`); // 追加
+                    elements.forEach(element => {
+                        element.style.display = event.target.checked ? '' : 'none';
+                    });
+                });
+
+
+                colorInput.addEventListener('change', (event) => {
+                    console.log(`Layer ${sanitizedLayer} color change: ${event.target.value}`); // 追加
+                    this.updateLayerStyle(sanitizedLayer, 'stroke', event.target.value);
+
+                });
+
+                strokeWidthInput.addEventListener('change', (event) => {
+                    console.log(`Layer ${sanitizedLayer} stroke change: ${event.target.value}`); // 追加
+                    this.updateLayerStyle(sanitizedLayer, 'stroke-width', event.target.value);
+
+                });
+                controlArea.appendChild(container);
+            });
+        }
+        class ElementStyleControls {
+            createTypeControl(type) {
+                const container = document.createElement('div');
+                container.className = 'control-group';
+                container.innerHTML = `<h3>${this.getTypeName(type)}</h3>`;
+
+                // 要素タイプに応じた設定項目を追加
+                const configs = this.getControlConfigs(type);
+                Object.entries(configs).forEach(([key, config]) => {
+                    container.appendChild(this.createControl(type, key, config));
+                });
+
+                return container;
+            }
+
+            getControlConfigs(type) {
+                // 共通の設定
+                const common = {
+                    stroke: { label: '線の色', type: 'color', value: '#000000' },
+                    strokeWidth: { label: '線の太さ', type: 'number', value: 1, min: 0.1, max: 10, step: 0.1 },
+                    dashArray: {
+                        label: '線種', type: 'select', options: [
+                            { value: '', label: '実線' },
+                            { value: '5,5', label: '破線' },
+                            { value: '2,2', label: '点線' }
+                        ]
+                    },
+                    opacity: { label: '透明度', type: 'number', value: 1, min: 0, max: 1, step: 0.1 }
+                };
+
+                // 塗りつぶし可能な要素の追加設定
+                const fillable = {
+                    noFill: { label: '塗りつぶしなし', type: 'checkbox' },
+                    fill: { label: '塗りつぶし色', type: 'color', value: '#FFFFFF' },
+                    fillOpacity: { label: '塗りつぶし透明度', type: 'number', value: 0.1, min: 0, max: 1, step: 0.1 }
+                };
+
+                // 要素タイプごとの設定を返す
+                switch (type) {
+                    case 'CIRCLE':
+                    case 'ELLIPSE':
+                    case 'POLYLINE':
+                    case 'LWPOLYLINE':
+                    case 'SPLINE':
+                        return { ...common, ...fillable };
+                    default:
+                        return common;
+                }
+            }
+
+            createControl(type, key, config) {
+                const div = document.createElement('div');
+                div.className = 'control-item';
+                const id = `${type}-${key}`;  // idを生成
+
+                const label = document.createElement('label');
+                label.setAttribute('for', id); // forを追加
+                label.textContent = config.label;
+
+                const input = this.createInput(type, key, config);
+                input.id = id;  // 入力要素にidを設定
+
+                div.appendChild(label);
+                div.appendChild(input);
+
+                return div;
+            }
+
+            createInput(type, key, config) {
+                let input;
+                const id = `${type}-${key}`;
+
+                switch (config.type) {
+                    case 'color':
+                        input = document.createElement('input');
+                        input.type = 'color';
+                        input.value = config.value;
+                        break;
+
+                    case 'number':
+                        input = document.createElement('input');
+                        input.type = 'number';
+                        Object.assign(input, {
+                            value: config.value,
+                            min: config.min,
+                            max: config.max,
+                            step: config.step
+                        });
+                        break;
+
+                    case 'checkbox':
+                        input = document.createElement('input');
+                        input.type = 'checkbox';
+                        break;
+
+                    case 'select':
+                        input = document.createElement('select');
+                        config.options.forEach(opt => {
+                            const option = document.createElement('option');
+                            option.value = opt.value;
+                            option.textContent = opt.label;
+                            input.appendChild(option);
+                        });
+                        break;
+                }
+
+                input.id = id;
+                input.addEventListener('input', e => this.updateStyle(type, key, e.target.value));
+                return input;
+            }
+
+            updateStyle(type, key, value) {
+                const elements = document.querySelectorAll(`[data-type="${type}"]`);
+                elements.forEach(el => {
+                    switch (key) {
+                        case 'noFill':
+                            this.updateFillControls(type, value === 'true');
+                            break;
+                        case 'stroke':
+                        case 'fill':
+                            el.style[key] = value;
+                            break;
+                        case 'strokeWidth':
+                            el.style.strokeWidth = value;
+                            break;
+                        case 'dashArray':
+                            el.style.strokeDasharray = value;
+                            break;
+                        case 'opacity':
+                        case 'fillOpacity':
+                            el.style[key] = value;
+                            break;
+                    }
+
+                });
+            }
+
+            updateFillControls(type, disabled) {
+                const fillInputs = document.querySelectorAll(`#${type}-fill, #${type}-fillOpacity`);
+                fillInputs.forEach(input => input.disabled = disabled);
+            }
+
+            getTypeName(type) {
+                const names = {
+                    LINE: '線',
+                    CIRCLE: '円',
+                    ARC: '円弧',
+                    ELLIPSE: '楕円',
+                    SPLINE: 'スプライン',
+                    POLYLINE: 'ポリライン',
+                    LWPOLYLINE: 'LWポリライン'
+                };
+                return names[type] || type;
+            }
+        }
+
+        class DxfDrawer {
+            constructor(svg) {
+                this.svg = svg;
+            }
+
+            createSvgElement(type, attributes = {}) {
+                const element = document.createElementNS("http://www.w3.org/2000/svg", type);
+
+                if (attributes.dxfType) {
+                    element.setAttribute('data-type', attributes.dxfType);
+                }
+                if (attributes.layer) {
+                    const sanitizedLayer = sanitizeLayerName(attributes.layer);
+                    element.classList.add(`layer-${sanitizedLayer}`)
+                }
+                if (attributes.layer) {
+                    console.log('layer:', attributes.layer);  // 追加
+                }
+                Object.entries(attributes).forEach(([key, value]) => {
+                    if (value !== undefined && value !== null && key !== 'dxfType' && key !== 'layer') {
+                        element.setAttribute(key, value);
+                    }
+                });
+                return element;
+            }
+            addClickEventToElement(element, info) {
+                element.addEventListener('click', () => {
+                    displayShapeInfo(info);
+                });
+            }
+
+            displayShapeInfo(info) {
+                const infoArea = document.getElementById('infoArea');
+                infoArea.innerHTML = `
+        <h3>Shape Information</h3>
+        <p><strong>Type:</strong> ${info.type}</p>
+        <p><strong>ID:</strong> ${info.id}</p>
+        <p><strong>Coordinates:</strong> ${info.coordinates}</p>
+        <p><strong>Additional Data:</strong> ${info.additionalData}</p>
+    `;
+            }
+            shouldShowLabels() {
+                // 要素タイプごとの設定に基づいて判定
+                labelDisplay: document.getElementById('labelDisplay')
+                return labelDisplay.checked; // または適切な条件
+            }
+
+            drawLabel(labelText, x, y, options) {
+                const { fontSize, pointSize, fontColor, labelDisplay } = options;
+                if (!this.shouldShowLabels()) return null;
+                // console.log(fontColor);
+
+                // デフォルト値を設定し、数値化を確実に
+                const offset = 0;//pointSize ? parseFloat(pointSize) : 0.5;
+                const xPos = x + offset + 2 * 0;
+                const yPos = y - offset;
+
+                // NaNチェックを追加
+                if (isNaN(xPos) || isNaN(yPos)) {
+                    console.warn('Invalid coordinates for label:', { x, y, pointSize });
+                    return null;
+                }
+
+                const textElement = this.createSvgElement("text", {
+                    x: xPos,
+                    y: yPos,
+                    "font-size": fontSize,
+                    fill: fontColor,
+                    dxfType: "LABEL"
+                });
+                textElement.textContent = labelText;
+                return textElement;
+            }
+            drawText(text, options) {
+                const { color, fontColor, fontSize } = options;
+                const { position, value, height, rotation,
+                    horizontalJustification, verticalJustification, layer } = text;
+
+                // 基本属性
+                const attributes = {
+                    x: position.x,
+                    y: -position.y,
+                    fill: fontColor || color,
+                    "font-size": height,
+                    layer: layer,
+                    transform: rotation ? `rotate(${-rotation} ${position.x} ${-position.y})` : undefined
+                };
+
+                // 拡張機能：位置揃えの処理
+                if (horizontalJustification !== undefined) {
+                    attributes["text-anchor"] = horizontalJustification === 1 ? 'middle' :
+                        horizontalJustification === 2 ? 'end' : 'start';
+                }
+                if (verticalJustification !== undefined) {
+                    attributes["dominant-baseline"] = verticalJustification === 1 ? 'middle' :
+                        verticalJustification === 2 ? 'hanging' : 'auto';
+                }
+
+                const textElement = this.createSvgElement("text", attributes);
+                textElement.textContent = value;
+                this.svg.appendChild(textElement);
+            }
+
+            drawMText(mtext, options) {
+                const { position, value, height, width, attachmentPoint, directionX, directionY, layer } = mtext;
+                const { color, fontColor } = options;
+
+                // 方向ベクトルから回転角度を計算
+                let rotation = 0;
+                if (directionX !== undefined && directionY !== undefined) {
+                    rotation = -Math.atan2(directionY, directionX) * 180 / Math.PI;
+                }
+                // 取り付け点に基づく位置揃えの設定
+                let textAnchor = 'start';
+                let baseline = 'auto';
+
+                // attachmentPointは1-9の値で、テキストボックスの位置を指定
+                // 例: 1=左下、2=中下、3=右下、4=左中、5=中中、6=右中、7=左上、8=中上、9=右上
+                switch (attachmentPoint) {
+                    case 2: case 5: case 8: // 中央
+                        textAnchor = 'middle';
+                        break;
+                    case 3: case 6: case 9: // 右
+                        textAnchor = 'end';
+                        break;
+                }
+                switch (attachmentPoint) {
+                    case 4: case 5: case 6: // 中段
+                        baseline = 'middle';
+                        break;
+                    case 7: case 8: case 9: // 上段
+                        baseline = 'hanging';
+                        break;
+                }
+
+                transform: rotation = `rotate(${rotation} ${position.x} ${-position.y})`;
+                const textElement = this.createSvgElement("text", {
+                    x: position.x,
+                    y: -position.y,  // Y座標反転
+                    fill: fontColor || color,
+                    "font-size": height,
+                    "text-anchor": textAnchor,
+                    "dominant-baseline": baseline,
+                    transform: rotation,
+                    dxfType: "MTEXT",  // これを追加
+                    layer: layer
+
+                });
+                textElement.textContent = value;
+                this.svg.appendChild(textElement);
+            }
+
+            drawLine(start, end, options) {
+                const { color, width: pointSize, fontSize, index, layer } = options;
+                let lineColor = color;
+                let lineSize = pointSize;
+
+                if (layer === "FD_Dimensions") {
+                    lineColor = "green";
+                    lineSize = 0.1;
+                }
+                // console.log(lineSize, options.maxStrokeWidth);
+                const line = this.createSvgElement("line", {
+                    x1: start.x,
+                    y1: start.y,
+                    x2: end.x,
+                    y2: end.y,
+                    stroke: lineColor,
+                    "stroke-width": Math.min(lineSize, options.maxStrokeWidth),
+                    "stroke-linecap": "round", // 線の末端を丸く
+                    dxfType: "LINE", // これを追加
+                    layer: layer
+                });
+                addClickEventToElement(line, {
+                    type: 'Line',
+                    id: `L${index + 1}`,
+                    coordinates: `(${start.x.toFixed(2)}, ${start.y.toFixed(2)}) to (${end.x.toFixed(2)}, ${end.y.toFixed(2)})`,
+                    additionalData: `Layer: ${layer}`
+                });
+                this.svg.appendChild(line);
+
+                const label = this.drawLabel(`L${index + 1}`,
+                    (start.x + end.x) / 2,
+                    (start.y + end.y) / 2,
+                    options
+                );
+                if (label) this.svg.appendChild(label);
+            }
+
+            //drawCircle(center, radius, options) {
+            drawCircle(circleA, options) {
+                const { radius, center, layer } = circleA;
+                const { fontSize, color, width: pointSize, fillColor, index } = options;
+                const circle = this.createSvgElement("circle", {
+                    cx: center.x,
+                    cy: center.y,
+                    r: radius,
+                    stroke: color,
+                    "stroke-width": Math.min(pointSize, options.maxStrokeWidth),
+                    fill: fillColor,
+                    "fill-opacity": "0.1",
+                    "fill-rule": "evenodd",
+                    dxfType: "CIRCLE",  // これを追加
+                    layer: layer
+                });
+                this.svg.appendChild(circle);
+
+                const label = this.drawLabel(`C${index + 1}`,
+                    center.x,
+                    center.y + radius,
+                    options
+                );
+                addClickEventToElement(circle, {
+                    type: 'Circle',
+                    id: `C${index + 1}`,
+                    coordinates: `(${center.x.toFixed(2)}, ${center.y.toFixed(2)}) ,(${radius.toFixed(2)})`,
+                    additionalData: `Layer: ${layer}`
+                });
+                if (label) this.svg.appendChild(label);
+            }
+
+            drawArc(arc, options) {
+                const { color, width: pointSize, fontSize, index } = options;
+                let { center, radius, startAngle, endAngle, layer } = arc;
+
+                // 角度を反時計回りから時計回りに変換
+                let start = (360 - startAngle) % 360;
+                let end = (360 - endAngle) % 360;
+
+                // ラジアンに変換
+                start = start * Math.PI / 180;
+                end = end * Math.PI / 180;
+
+                // 開始点と終了点
+                const startX = center.x + radius * Math.cos(start);
+                const startY = center.y + radius * Math.sin(start);
+                const endX = center.x + radius * Math.cos(end);
+                const endY = center.y + radius * Math.sin(end);
+
+                // 円弧の方向を決定
+                const angleDiff = (endAngle - startAngle + 360) % 360;
+                const largeArcFlag = angleDiff > 180 ? 1 : 0;
+
+                const path = this.createSvgElement("path", {
+                    d: `M ${startX} ${startY} A ${radius} ${radius} 0 ${largeArcFlag} 0 ${endX} ${endY}`,
+                    stroke: color,
+                    "stroke-width": Math.min(pointSize, options.maxStrokeWidth),
+                    fill: "none",
+                    dxfType: "ARC",  // これを追加
+                    layer: layer
+                });
+                this.svg.appendChild(path);
+
+                const label = this.drawLabel(`A${index + 1}R${radius.toFixed(1)}`,
+                    (startX + endX) / 2,
+                    (startY + endY) / 2,
+                    options
+                );
+                addClickEventToElement(path, {
+                    type: 'Arc',
+                    id: `A${index + 1}`,
+                    coordinates: `(X${center.x.toFixed(2)}, Y${center.y.toFixed(2)} ,R${radius.toFixed(2)}, SA${startAngle.toFixed(2)}, EA${endAngle.toFixed(2)})`,
+                    additionalData: ``
+                });
+                if (label) this.svg.appendChild(label);
+            }
+            // ポイントの描画
+            drawPoint(point, options) {
+                const { color, width: pointSize, index, layer } = options;
+                const circle = this.createSvgElement("circle", {
+                    cx: point.x,
+                    cy: point.y,
+                    r: pointSize,
+                    fill: "none",
+                    strokeWidth: Math.min(pointSize, maxStrokeWidth),
+                    dxfType: "POINT",
+                    layer: layer
+                });
+                this.svg.appendChild(circle);
+
+                const label = this.drawLabel(`P${index}`,
+                    point.x,
+                    point.y,
+                    options
+                );
+                if (label) this.svg.appendChild(label);
+            }
+
+            // ポリラインの描画
+            drawPolyline(vertices, options) {
+                if (vertices.length < 2) return;
+
+                const { color, width: pointSize, index, layer } = options;
+                const pathData = vertices.map((vertex, index) => {
+                    return index === 0 ? `M ${vertex.x} ${vertex.y}` : `L ${vertex.x} ${vertex.y}`;
+                }).join(' ');
+
+                const path = this.createSvgElement("path", {
+                    d: pathData,
+                    stroke: color,
+                    "stroke-width": pointSize,
+                    fill: closed ? polylineFillColor : "none",
+                    "fill-opacity": closed ? "0.1" : "0",
+                    "fill-rule": "evenodd",
+                    "stroke-linecap": "round",    // 線の末端を丸く
+                    "stroke-linejoin": "round",    // つなぎ目を丸く
+                    dxfType: "POLYLINE"
+                });
+                addClickEventToElement(path, {
+                    type: 'Polyline',
+                    id: `P${index + 1}`,
+                    coordinates: ``,
+                    additionalData: `vertices.length: ${vertices.length}`
+                });
+                this.svg.appendChild(path);
+                const centroid = this.calculateCentroid(vertices);
+                const label = this.drawLabel(`PL${index + 1}`,
+                    centroid.x,
+                    centroid.y,
+                    options
+                );
+                if (label) this.svg.appendChild(label);
+            }
+
+            // LWポリラインの描画
+            drawLWPolyline(lwpolyline, options) {
+                const { vertices, bulges, closed, layer } = lwpolyline;
+                const { color, width: pointSize, polylineFillColor, index } = options;
+                if (vertices.length < 2) return;
+                // console.log('LW vertices.length:', vertices.length, 'index:', index);
+                // バルジから円弧パラメータを計算する関数
+                const calculateArcParameters = (start, end, bulge) => {
+                    const bulgeAngle = Math.atan(Math.abs(bulge)) * 4;
+                    const dx = end.x - start.x;
+                    const dy = end.y - start.y;
+                    const chord = Math.sqrt(dx * dx + dy * dy);
+                    const radius = chord / (2 * Math.sin(bulgeAngle / 2));
+                    const sweepFlag = bulge > 0 ? 0 : 1;
+                    const largeArcFlag = Math.abs(bulgeAngle) > Math.PI ? 1 : 0;
+
+                    return {
+                        radius: Math.abs(radius),
+                        largeArcFlag,
+                        sweepFlag
+                    };
+                };
+
+                let pathData = `M ${vertices[0].x} ${vertices[0].y}`;
+
+                // 中間点の処理
+                for (let i = 0; i < vertices.length - 1; i++) {
+                    const currentPoint = vertices[i];
+                    const nextPoint = vertices[i + 1];
+                    const bulge = bulges[i];
+
+                    if (bulge && bulge !== 0) {
+                        const arc = calculateArcParameters(currentPoint, nextPoint, bulge);
+                        pathData += ` A ${arc.radius} ${arc.radius} 0 ${arc.largeArcFlag} ${arc.sweepFlag} ${nextPoint.x} ${nextPoint.y}`;
+                    } else {
+                        pathData += ` L ${nextPoint.x} ${nextPoint.y}`;
+                    }
+                }
+
+                // 閉じたポリラインの場合、最後の点から最初の点への処理
+                if (closed) {
+                    const lastBulge = bulges[vertices.length - 1];
+                    const firstPoint = vertices[0];
+                    const lastPoint = vertices[vertices.length - 1];
+
+                    if (lastBulge && lastBulge !== 0) {
+                        const arc = calculateArcParameters(lastPoint, firstPoint, lastBulge);
+                        pathData += ` A ${arc.radius} ${arc.radius} 0 ${arc.largeArcFlag} ${arc.sweepFlag} ${firstPoint.x} ${firstPoint.y}`;
+                    } else {
+                        pathData += ` L ${firstPoint.x} ${firstPoint.y}`;
+                    }
+                }
+
+                const path = this.createSvgElement("path", {
+                    d: pathData,
+                    stroke: color,
+                    "stroke-width": Math.min(pointSize, options.maxStrokeWidth),
+                    "stroke-linecap": "round", // 線の末端を丸く
+                    fill: closed ? polylineFillColor : "none",
+                    "fill-opacity": closed ? "0.1" : "0",
+                    "fill-rule": "evenodd",
+                    "stroke-linecap": "round",    // 線の末端を丸く
+                    "stroke-linejoin": "round",    // つなぎ目を丸く   
+                    dxfType: "LWPOLYLINE",
+                    layer: layer
+                });
+                addClickEventToElement(path, {
+                    type: 'LWPolyline',
+                    id: `LW${index + 1}`,
+                    coordinates: ``,
+                    additionalData: `vertices.length=${lwpolyline.vertices.length}`
+                });
+                this.svg.appendChild(path);
+
+                const centroid = this.calculateCentroid(vertices);
+                const label = this.drawLabel(`LW${index + 1}`,
+                    centroid.x,
+                    centroid.y,
+                    options
+                );
+                if (label) this.svg.appendChild(label);
+            }
+
+            // 楕円の描画
+            drawEllipse(ellipse, options) {
+                const { center, majorAxis, ratio, startParam, endParam, extrusionZ, layer } = ellipse;
+                const { color, polylineFillColor, width: pointSize, index } = options;
+                // console.log(extrusionZ);
+                const transformedCenter = {
+                    x: center.x,
+                    y: -center.y  // Y座標を反転
+                };
+                const majorLength = Math.sqrt(
+                    Math.pow(majorAxis.x, 2) + Math.pow(majorAxis.y, 2)
+                );
+                const baseAngle = Math.atan2(majorAxis.y, majorAxis.x);
+                const rx = majorLength;
+                const ry = majorLength * ratio;
+
+                const generatePath = (start, end) => {
+                    const segments = 90;
+                    const step = (end - start) / segments;
+                    let pathData = '';
+                    // console.log(extrusionZ);
+                    for (let i = 0; i <= segments; i++) {
+                        const t = start + (i * step);
+                        const x = rx * Math.cos(t);
+                        let y = ry * Math.sin(t);
+                        if (extrusionZ < 0) y = -y;
+
+                        const rotatedX = x * Math.cos(baseAngle) - y * Math.sin(baseAngle);
+                        const rotatedY = x * Math.sin(baseAngle) + y * Math.cos(baseAngle);
+                        const point = {
+                            x: center.x + rotatedX,
+                            y: -center.y - rotatedY
+                        };
+
+                        pathData += i === 0 ? `M ${point.x} ${point.y}` : ` L ${point.x} ${point.y}`;
+                    }
+                    return pathData;
+                };
+
+                // 2π以上の弧を分割して描画
+                const fullCircles = Math.floor((endParam - startParam) / (2 * Math.PI));
+                const remainderEnd = startParam + ((endParam - startParam) % (2 * Math.PI));
+                const isClosed = (endParam - startParam) >= 2 * Math.PI;
+                for (let i = 0; i <= fullCircles; i++) {
+                    const pathStart = startParam + (i * 2 * Math.PI);
+                    const pathEnd = (i === fullCircles) ? remainderEnd : pathStart + 2 * Math.PI;
+
+                    const path = this.createSvgElement("path", {
+                        d: generatePath(pathStart, pathEnd),
+                        stroke: color,
+                        "stroke-width": Math.min(pointSize, options.maxStrokeWidth),
+                        "stroke-linecap": "round", // 線の末端を丸く
+                        fill: isClosed ? polylineFillColor : "none",
+                        "fill-opacity": isClosed ? "0.1" : "0",
+                        dxfType: "ELLIPSE",
+                        layer: layer
+                    });
+                    addClickEventToElement(path, {
+                        type: 'Ellipse',
+                        id: `E${index + 1}`,
+                        coordinates: `X${(center.x).toFixed(2)} Y${(center.y).toFixed(2)} majorLength${(majorLength).toFixed(2)} ratio${(ratio).toFixed(2)} sa${(startParam).toFixed(2)} ea${(endParam).toFixed(2)} ez${(extrusionZ).toFixed(2)}`,
+                        additionalData: ``
+                    });
+                    this.svg.appendChild(path);
+                }
+
+                const label = this.drawLabel(`E${index + 1}`,
+                    transformedCenter.x,
+                    transformedCenter.y,  // 既に反転されているのでそのまま使用
+                    options
+                );
+                if (label) this.svg.appendChild(label);
+            }
+
+            // 中心点計算のヘルパーメソッド
+            calculateCentroid(vertices) {
+                const sumX = vertices.reduce((sum, v) => sum + v.x, 0);
+                const sumY = vertices.reduce((sum, v) => sum + v.y, 0);
+                return {
+                    x: sumX / vertices.length,
+                    y: sumY / vertices.length
+                };
+            }
+
+
+            drawSpline(spline, options) {
+                const { color, width: pointSize, index, polylineFillColor } = options;
+                // スプラインの描画ポイントを生成
+                const points = this.generateSplinePoints(spline);
+                // Y座標を反転して、パスデータを生成
+                const transformedPoints = points.map(p => ({
+                    x: p.x,
+                    y: -p.y  // Y座標を反転
+                }));
+                // パスデータの生成
+                let pathData = `M ${transformedPoints[0].x} ${transformedPoints[0].y}`;
+                for (let i = 1; i < transformedPoints.length; i++) {
+                    pathData += ` L ${transformedPoints[i].x} ${transformedPoints[i].y}`;
+                }
+                // closed フラグが明示的に true の場合のみ閉じる
+                const isClosed = spline.closed
+                if (spline.closed === true) {
+                    pathData += ' Z';
+                }
+                // パスの描画
+                const { degree, controlPoints, knots, fitPoints, layer } = spline;
+                const path = this.createSvgElement("path", {
+                    d: pathData,
+                    stroke: color,
+                    "stroke-width": Math.min(pointSize, options.maxStrokeWidth),
+                    "stroke-linecap": "round", // 線の末端を丸く
+                    fill: isClosed ? polylineFillColor : "none",
+                    "fill-opacity": spline.closed ? "0.1" : "0",
+                    "fill-rule": "evenodd",
+                    dxfType: "SPLINE",
+                    layer: layer
+                });
+                addClickEventToElement(path, {
+                    type: 'Spline',
+                    id: `S${index + 1}`,
+                    coordinates: ``,
+                    additionalData: `spline degree = ${degree}, controlPoints length = ${controlPoints.length}, fitPoints length = ${fitPoints.length}`
+                });
+                this.svg.appendChild(path);
+
+                // ラベルの追加（スプラインの中央付近に配置）
+                const midPoint = points[Math.floor(points.length / 2)];
+                const label = this.drawLabel(`S${index + 1}`, midPoint.x, -midPoint.y, options);
+                if (label) this.svg.appendChild(label);
+            }
+
+            generateSplinePoints(spline) {
+                const { degree, controlPoints, knots, fitPoints } = spline;
+
+                // フィットポイントの処理を改善
+                if (fitPoints && fitPoints.length > 0) {
+                    return this.generatePointsFromFitPoints(fitPoints);
+                }
+
+                // 制御点とノットベクトルを使用してNURBS曲線を生成
+                if (controlPoints && controlPoints.length > 0 && knots) {
+                    const tMin = knots[degree];
+                    const tMax = knots[knots.length - degree - 1];
+                    const numPoints = Math.max(10, controlPoints.length * 10); // ポイント数を増やす
+                    const points = [];
+
+                    for (let i = 0; i <= numPoints; i++) {
+                        const t = tMin + (i / numPoints) * (tMax - tMin);
+                        const point = this.evaluateNurbsPoint(t, controlPoints, knots, degree);
+
+                        // 最後のポイントを確実に含める
+                        if (i === numPoints) {
+                            point.x = controlPoints[controlPoints.length - 1].x;
+                            point.y = controlPoints[controlPoints.length - 1].y;
+                        }
+
+                        if (!isNaN(point.x) && !isNaN(point.y)) {
+                            points.push(point);
+                        }
+                    }
+
+                    return points;
+                }
+
+                return []; // 適切なポイントが生成できない場合は空配列を返す
+            }
+
+            generatePointsFromFitPoints(fitPoints) {
+                const points = [];
+                const numSegments = Math.max(20, fitPoints.length * 5); // セグメント数を増やす
+
+                for (let i = 0; i < fitPoints.length - 1; i++) {
+                    const p1 = fitPoints[i];
+                    const p2 = fitPoints[i + 1];
+
+                    // カーブの制御に使用する追加ポイントを計算
+                    const nextPoint = fitPoints[i + 2];
+                    const prevPoint = fitPoints[i - 1];
+
+                    for (let j = 0; j <= numSegments; j++) {
+                        const t = j / numSegments;
+                        // 3次補間を使用してよりスムーズなカーブを生成
+                        const point = this.interpolateSplinePoint(p1, p2, prevPoint, nextPoint, t);
+                        points.push(point);
+                    }
+                }
+
+                // 最後のポイントを確実に含める
+                points.push(fitPoints[fitPoints.length - 1]);
+
+                return points;
+            }
+
+            interpolateSplinePoint(p1, p2, prevPoint, nextPoint, t) {
+                // カトマル・ロム補間またはカーディナル補間を使用
+                const tension = 0.5;
+
+                const t2 = t * t;
+                const t3 = t2 * t;
+
+                // 制御点が存在しない場合の処理
+                const p0 = prevPoint || p1;
+                const p3 = nextPoint || p2;
+
+                // カーディナル補間の係数
+                const c1 = 2 * t3 - 3 * t2 + 1;
+                const c2 = -2 * t3 + 3 * t2;
+                const c3 = t3 - 2 * t2 + t;
+                const c4 = t3 - t2;
+
+                return {
+                    x: c1 * p1.x + c2 * p2.x + tension * (c3 * (p2.x - p0.x) + c4 * (p3.x - p1.x)),
+                    y: c1 * p1.y + c2 * p2.y + tension * (c3 * (p2.y - p0.y) + c4 * (p3.y - p1.y))
+                };
+            }
+
+            generateNurbsPoints(controlPoints, knots, degree) {
+                if (!controlPoints || controlPoints.length < 2) {
+                    console.warn('Not enough control points for spline generation');
+                    return [{ x: 0, y: 0 }];
+                }
+
+                // パラメータの範囲を決定
+                const tMin = knots[degree];
+                const tMax = knots[knots.length - degree - 1];
+                const numPoints = 100;
+                const points = [];
+
+                try {
+                    for (let i = 0; i <= numPoints; i++) {
+                        // パラメータ値を有効な範囲に制限
+                        const t = tMin + (i / numPoints) * (tMax - tMin);
+                        const point = this.evaluateNurbsPoint(t, controlPoints, knots, degree);
+
+                        // NaNチェック
+                        if (!isNaN(point.x) && !isNaN(point.y)) {
+                            points.push(point);
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Error generating NURBS points:', error);
+                    // エラーが発生した場合は制御点を直線で結ぶ
+                    return this.generateLinearPoints(controlPoints);
+                }
+
+                return points.length > 0 ? points : this.generateLinearPoints(controlPoints);
+            }
+
+            generateLinearPoints(controlPoints) {
+                // 制御点を直線で結ぶフォールバック実装
+                const points = [];
+                for (let i = 0; i < controlPoints.length; i++) {
+                    points.push({
+                        x: controlPoints[i].x,
+                        y: controlPoints[i].y
+                    });
+                }
+                return points;
+            }
+
+            evaluateNurbsPoint(t, controlPoints, knots, degree) {
+                try {
+                    let x = 0;
+                    let y = 0;
+                    let denominator = 0;
+
+                    // 有効な制御点の範囲を計算
+                    const n = controlPoints.length - 1;
+
+                    for (let i = 0; i <= n; i++) {
+                        const basis = this.basisFunction(i, degree, t, knots);
+                        const weight = controlPoints[i].w || 1.0;  // 重みが未定義の場合は1.0を使用
+
+                        const factor = basis * weight;
+                        x += controlPoints[i].x * factor;
+                        y += controlPoints[i].y * factor;
+                        denominator += factor;
+                    }
+
+                    // 分母が0に近い場合の処理
+                    if (Math.abs(denominator) < 1e-10) {
+                        const midIndex = Math.floor(controlPoints.length / 2);
+                        return {
+                            x: controlPoints[midIndex].x,
+                            y: controlPoints[midIndex].y
+                        };
+                    }
+
+                    return {
+                        x: x / denominator,
+                        y: y / denominator
+                    };
+                } catch (error) {
+                    console.warn('Error in NURBS evaluation:', error);
+                    return controlPoints[0];
+                }
+            }
+
+            basisFunction(i, degree, t, knots) {
+                // 0次の基底関数
+                if (degree === 0) {
+                    return (t >= knots[i] && t < knots[i + 1]) ? 1.0 : 0.0;
+                }
+
+                // 分母が0になる場合の処理を含む係数計算
+                const left = (t - knots[i]) / (knots[i + degree] - knots[i] || 1e-10);
+                const right = (knots[i + degree + 1] - t) / (knots[i + degree + 1] - knots[i + 1] || 1e-10);
+
+                // 再帰的に基底関数を計算
+                return left * this.basisFunction(i, degree - 1, t, knots) +
+                    right * this.basisFunction(i + 1, degree - 1, t, knots);
+            }
+
+
+
+            generateLinearPoints(controlPoints) {
+                // 制御点を直線で結ぶフォールバック実装
+                const points = [];
+                for (let i = 0; i < controlPoints.length; i++) {
+                    points.push({
+                        x: controlPoints[i].x,
+                        y: controlPoints[i].y
+                    });
+                }
+                return points;
+            }
+
+
+
+
+
+
+
+
+
+            drawGrid(viewBox, gridSize = 10) {
+                const xStart = Math.floor(viewBox.x / gridSize) * gridSize;
+                const xEnd = Math.ceil((viewBox.x + viewBox.width) / gridSize) * gridSize;
+                const yStart = Math.floor(viewBox.y / gridSize) * gridSize;
+                const yEnd = Math.ceil((viewBox.y + viewBox.height) / gridSize) * gridSize;
+
+                for (let x = xStart; x <= xEnd; x += gridSize) {
+                    this.createSvgElement("line", {
+                        x1: x,
+                        y1: yStart,
+                        x2: x,
+                        y2: yEnd,
+                        class: "grid-line"
+                    });
+                }
+
+                for (let y = yStart; y <= yEnd; y += gridSize) {
+                    this.createSvgElement("line", {
+                        x1: xStart,
+                        y1: y,
+                        x2: xEnd,
+                        y2: y,
+                        class: "grid-line"
+                    });
+                }
+            }
+
+            drawAxis(viewBox) {
+                this.svg.appendChild(this.createSvgElement("line", {
+                    x1: viewBox.x,
+                    y1: 0,
+                    x2: viewBox.x + viewBox.width,
+                    y2: 0,
+                    class: "axis-line"
+                }));
+
+                this.svg.appendChild(this.createSvgElement("line", {
+                    x1: 0,
+                    y1: viewBox.y,
+                    x2: 0,
+                    y2: viewBox.y + viewBox.height,
+                    class: "axis-line"
+                }));
+            }
+        }
+
+        class DxfViewer {
+            constructor() {
+
+                const controlArea = document.querySelector('.control-area');
+
+                this.points = [];
+                this.lines = [];
+                this.polylines = [];
+                this.circles = [];
+                this.arcs = [];
+                this.lwpolylines = [];      // LWPOLYLINEを追加
+                this.splines = [];
+                this.ellipses = [];
+                this.svg = document.getElementById('graph');
+                this.viewBox = { x: 0, y: 0, width: 800, height: 600 };
+                this.showGrid = true;
+                this.showAxis = true;
+                this.measuring = false;
+                this.measureStart = null;
+                this.measurements = [];
+                this.texts = [];  // テキストエンティティ用の配列を追加
+                this.mtexts = [];  // MTEXTエンティティ用
+                this.drawer = new DxfDrawer(this.svg);
+                this.styleControls = new ElementStyleControls();
+                this.setupDropzone();
+                this.setupControls();
+                this.setupSvgInteractions();
+
+            }
+
+            setupDropzone() {
+                const dropzone = document.getElementById('dropzone');
+                const handleFile = (file) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => this.parseDxf(e.target.result);
+                    reader.readAsText(file);
+                    const filenameElement = document.getElementById('header');
+                    filenameElement.textContent = file.name;
+                };
+
+                dropzone.ondragover = (e) => {
+                    e.preventDefault();
+                    dropzone.classList.add('dragover');
+                };
+                dropzone.ondragleave = () => dropzone.classList.remove('dragover');
+                dropzone.ondrop = (e) => {
+                    e.preventDefault();
+                    dropzone.classList.remove('dragover');
+                    handleFile(e.dataTransfer.files[0]);
+                };
+                dropzone.onclick = () => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = '.dxf';
+                    input.onchange = (e) => handleFile(e.target.files[0]);
+                    input.click();
+                };
+            }
+
+            setupControls() {
+                document.getElementById('toggleGrid').onclick = () => {
+                    this.showGrid = !this.showGrid;
+                    this.redraw();
+                };
+                document.getElementById('toggleAxis').onclick = () => {
+                    this.showAxis = !this.showAxis;
+                    this.redraw();
+                };
+                document.getElementById('toggleMeasure').onclick = (e) => {
+                    this.measuring = !this.measuring;
+                    e.target.classList.toggle('active');
+                };
+                const controlArea = document.querySelector('.control-area');
+                ['LINE', 'CIRCLE', 'ARC', 'ELLIPSE', 'SPLINE', 'POLYLINE', 'LWPOLYLINE']
+                    .forEach(type => {
+                        controlArea.appendChild(this.styleControls.createTypeControl(type));
+                    });
+
+                document.getElementById('resetView').onclick = () => this.resetView();
+                document.getElementById('exportCsv').onclick = () => this.exportCsv();
+                document.getElementById('exportSvg').onclick = () => this.exportSvg();
+                document.getElementById('fontSize').onchange = () => this.redraw();
+                document.getElementById('maxStrokeWidth').onchange = () => this.redraw();
+                document.getElementById('fontColor').onchange = () => this.redraw();
+                document.getElementById('labelDisplay').onchange = () => this.redraw();
+            }
+
+
+
+            setupSvgInteractions() {
+                let isPanning = false;
+                let startPoint = { x: 0, y: 0 };
+                let startViewBox = { ...this.viewBox };
+
+                this.svg.onmousedown = (e) => {
+                    if (this.measuring) {
+                        const point = this.screenToSvgCoordinates(e);
+                        if (!this.measureStart) {
+                            this.measureStart = point;
+                        } else {
+                            this.measurements.push({
+                                start: this.measureStart,
+                                end: point,
+                                distance: this.calculateDistance(this.measureStart, point)
+                            });
+                            this.measureStart = null;
+                            this.redraw();
+                        }
+                    } else {
+                        isPanning = true;
+                        startPoint = { x: e.clientX, y: e.clientY };
+                        startViewBox = { ...this.viewBox };
+                    }
+                };
+
+                this.svg.onmousemove = (e) => {
+                    if (isPanning) {
+                        const dx = (e.clientX - startPoint.x) * this.viewBox.width / this.svg.clientWidth;
+                        const dy = (e.clientY - startPoint.y) * this.viewBox.height / this.svg.clientHeight;
+                        this.viewBox.x = startViewBox.x - dx;
+                        this.viewBox.y = startViewBox.y - dy;
+                        this.updateViewBox();
+                    }
+                };
+
+                this.svg.onmouseup = () => {
+                    isPanning = false;
+                };
+
+                this.svg.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                    const point = this.screenToSvgCoordinates(e);
+                    const scale = e.deltaY > 0 ? 1.1 : 0.9;
+
+                    this.viewBox.width *= scale;
+                    this.viewBox.height *= scale;
+                    this.viewBox.x = point.x - (point.x - this.viewBox.x) * scale;
+                    this.viewBox.y = point.y - (point.y - this.viewBox.y) * scale;
+
+                    this.updateViewBox();
+                }, { passive: false });
+            }
+
+            screenToSvgCoordinates(event) {
+                const rect = this.svg.getBoundingClientRect();
+                const x = this.viewBox.x + (event.clientX - rect.left) * this.viewBox.width / rect.width;
+                const y = this.viewBox.y + (event.clientY - rect.top) * this.viewBox.height / rect.height;
+                return { x, y };
+            }
+
+            calculateDistance(p1, p2) {
+                return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+            }
+
+            parseDxf(content) {
+                const lines = content.split(/\r\n|\n/);
+                // すべてのデータをクリア
+                this.points = [];
+                this.lines = [];
+                this.polylines = [];
+                this.circles = [];
+                this.arcs = [];
+                this.lwpolylines = [];
+                this.ellipses = [];
+                this.splines = [];
+                this.measurements = [];
+                this.measureStart = null;
+                this.texts = [];
+                this.mtexts = [];  // M
+                let currentEntity = null;
+                let currentPolyline = null;
+                let currentVertex = null;
+                let skipEntity = false;
+                let i = 0;
+
+
+
+                while (i < lines.length - 1) {  // グループコードと値のペアを読むため、最後の1行手前まで
+                    const groupCode = parseInt(lines[i].trim());
+                    const value = lines[i + 1].trim();
+
+                    // エンティティの開始を検出（グループコード 0）
+                    if (groupCode === 0) {
+                        // 前のエンティティの完了処理
+                        this.finalizeEntity(currentEntity, currentPolyline, skipEntity);
+                        if (currentEntity && currentEntity.type === 'VERTEX' &&
+                            currentVertex && currentVertex.x !== undefined && currentVertex.y !== undefined) {
+                            currentPolyline.vertices.push({ ...currentVertex });
+                        }
+                        // 新しいエンティティの初期化
+                        skipEntity = false;
+                        currentVertex = null;
+
+                        switch (value) {
+                            case 'MTEXT':
+                                currentEntity = {
+                                    type: 'MTEXT',
+                                    position: { x: 0, y: 0 },    // 挿入点
+                                    height: 0,                    // テキスト高さ
+                                    value: '',                    // テキスト内容
+                                    rotation: 0,                  // 回転角度
+                                    width: 0,                     // 参照幅
+                                    attachmentPoint: 1,           // 取り付け点
+                                    drawingDirection: 1,          // 描画方向
+                                    lineSpacingStyle: 1,         // 行間スタイル
+                                    lineSpacingFactor: 1.0,      // 行間係数
+                                    layer: '',                   // レイヤー名
+                                    rotation: 0,
+                                };
+                                break;
+
+                            case 'TEXT':
+                                currentEntity = {
+                                    type: 'TEXT',
+                                    position: { x: 0, y: 0 },     // 基本的な位置情報
+                                    height: 0,
+                                    value: '',
+                                    rotation: 0,
+                                    // 拡張情報
+                                    alignPoint: { x: 0, y: 0 },   // 整列点
+                                    style: 'STANDARD',            // スタイル
+                                    horizontalJustification: 0,    // 水平位置揃え
+                                    verticalJustification: 0,      // 垂直位置揃え
+                                    layer: '',                   // レイヤー名
+                                };
+                                break;
+
+                            case 'POINT':
+                                currentEntity = { type: 'POINT' };
+                                break;
+                            case 'LINE':
+                                currentEntity = { type: 'LINE' };
+                                break;
+                            case 'POLYLINE':
+                                currentPolyline = {
+                                    vertices: [],
+                                    closed: false
+                                };
+                                currentEntity = { type: 'POLYLINE' };
+                                this.polylines.push(currentPolyline);
+                                break;
+                            case 'VERTEX':
+                                if (currentPolyline) {
+                                    currentVertex = {
+                                        x: undefined,
+                                        y: undefined
+                                    };
+                                    currentEntity = { type: 'VERTEX' };
+                                }
+                                break;
+                            case 'SEQEND':
+                                if (currentPolyline && currentVertex) {
+                                    // 最後の頂点が完成していれば追加
+                                    if (currentVertex.x !== undefined && currentVertex.y !== undefined) {
+                                        currentPolyline.vertices.push({ ...currentVertex });
+                                    }
+                                }
+                                currentVertex = null;
+                                currentPolyline = null;
+                                currentEntity = null;
+                                break;
+                            case 'LWPOLYLINE':
+                                currentEntity = {
+                                    type: 'LWPOLYLINE',
+                                    vertices: [],
+                                    bulges: {},
+                                    closed: false
+                                };
+                                this.lwpolylines.push(currentEntity);
+                                break;
+                            case 'CIRCLE':
+                                currentEntity = { type: 'CIRCLE' };
+                                break;
+                            case 'ARC':
+                                currentEntity = { type: 'ARC' };
+                                break;
+                            case 'ELLIPSE':
+                                currentEntity = {
+                                    type: 'ELLIPSE',
+                                    center: { x: 0, y: 0, z: 0 },
+                                    majorAxis: { x: 0, y: 0, z: 0 },
+                                    extrusionZ: 0
+                                };
+                                break;
+                            case 'SPLINE':
+                                currentEntity = {
+                                    type: 'SPLINE',
+                                    controlPoints: [],
+                                    fitPoints: [],
+                                    knots: [],
+                                    degree: 3 // デフォルト値
+
+                                };
+                                break;
+                            default:
+                                currentEntity = null;
+                        }
+                    } else if (!skipEntity && currentEntity) {
+                        // レイヤーチェック
+                        if (groupCode === 8 && value === 'Defpoints') {
+                            skipEntity = true;
+                            continue;
+                        }
+
+                        // エンティティタイプに応じたデータ処理
+                        switch (currentEntity.type) {
+                            case 'TEXT':
+                                switch (groupCode) {
+                                    case 10: currentEntity.position.x = parseFloat(value); break;
+                                    case 20: currentEntity.position.y = parseFloat(value); break;
+                                    case 30: currentEntity.position.z = parseFloat(value); break;
+                                    case 40: currentEntity.height = parseFloat(value); break;
+                                    case 1: currentEntity.value = value; break;
+                                    case 50: currentEntity.rotation = parseFloat(value); break;
+                                    // 拡張機能
+                                    case 11: currentEntity.alignPoint.x = parseFloat(value); break;
+                                    case 21: currentEntity.alignPoint.y = parseFloat(value); break;
+                                    case 7: currentEntity.style = value; break;
+                                    case 72: currentEntity.horizontalJustification = parseInt(value); break;
+                                    case 73: currentEntity.verticalJustification = parseInt(value); break;
+                                }
+                            case 'MTEXT':
+                                this.parseMTextData(currentEntity, groupCode, value);
+                                break;
+                            case 'POINT':
+                                this.parsePointData(currentEntity, groupCode, value);
+                                break;
+                            case 'LINE':
+                                this.parseLineData(currentEntity, groupCode, value);
+                                break;
+                            case 'POLYLINE':
+                                if (groupCode === 70) {
+                                    if (currentPolyline) {
+                                        currentPolyline.closed = (parseInt(value) & 1) !== 0;
+                                    }
+                                }
+                                break;
+                            case 'VERTEX':
+                                if (currentVertex && currentPolyline) {
+                                    switch (groupCode) {
+                                        case 10:
+                                            currentVertex.x = parseFloat(value);
+                                            break;
+                                        case 20:
+                                            currentVertex.y = parseFloat(value);
+                                            break;
+                                        case 30:
+                                            currentVertex.z = parseFloat(value);
+                                            break;
+                                        case 42:
+                                            currentVertex.bulge = parseFloat(value);
+                                            break;
+                                    }
+                                }
+                                break;
+                            case 'LWPOLYLINE':
+                                this.parseLWPolylineData(currentEntity, groupCode, value);
+                                break;
+                            case 'CIRCLE':
+                                this.parseCircleData(currentEntity, groupCode, value);
+                                break;
+                            case 'ARC':
+                                this.parseArcData(currentEntity, groupCode, value);
+                                break;
+                            case 'ELLIPSE':
+                                this.parseEllipseData(currentEntity, groupCode, value);
+                                break;
+                            case 'SPLINE':
+                                this.parseSplineData(currentEntity, groupCode, value);
+                                break;
+                        }
+                    }
+
+                    // 2行ずつ進める（グループコードと値のペア）
+                    i += 2;
+                }
+
+                // 最後のエンティティの処理
+                this.finalizeEntity(currentEntity, currentPolyline, skipEntity);
+                const layers = [...new Set(this.lines.map(line => line.layer))];
+                const sanitizedLayers = layers.map(sanitizeLayerName); // ここでサニタイズ
+                console.log('sanitizedLayers:', sanitizedLayers); // デバッグログを追加                
+
+                createLayerControls(layers);
+                this.updateTable();
+                this.resetView();
+                this.redraw();
+            }
+
+            // 各エンティティタイプのパース処理を分離したヘルパーメソッド
+            // MTEXTのパースメソッド
+            parseMTextData(entity, groupCode, value) {
+                switch (groupCode) {
+                    case 8:   // レイヤー名
+                        entity.layer = value;
+                        break;
+                    case 10:  // X座標
+                        entity.position.x = parseFloat(value);
+                        break;
+                    case 20:  // Y座標
+                        entity.position.y = parseFloat(value);
+                        break;
+                    case 30:  // Z座標
+                        entity.position.z = parseFloat(value);
+                        break;
+                    case 40:  // テキスト高さ
+                        entity.height = parseFloat(value);
+                        break;
+                    case 41:  // 参照幅
+                        entity.width = parseFloat(value);
+                        break;
+                    case 71:  // 取り付け点
+                        entity.attachmentPoint = parseInt(value);
+                        break;
+                    case 72:  // 描画方向
+                        entity.drawingDirection = parseInt(value);
+                        break;
+                    case 1:   // テキスト内容
+                    case 3:   // 追加テキスト（必要な場合）
+                        // テキストの結合前に特殊文字の処理を行う
+                        const processedValue = this.processMTextValue(value);
+                        entity.value = (entity.value || '') + processedValue;
+                        break;
+                    case 44:  // 行間係数
+                        entity.lineSpacingFactor = parseFloat(value);
+                        break;
+                    case 73:  // 行間スタイル
+                        entity.lineSpacingStyle = parseInt(value);
+                        break;
+                    case 11:  // X方向ベクトル
+                        entity.directionX = parseFloat(value);
+                        break;
+                    case 21:  // Y方向ベクトル
+                        entity.directionY = parseFloat(value);
+                        break;
+                    case 31:  // Z方向ベクトル
+                        entity.directionZ = parseFloat(value);
+                        break;
+                }
+            }
+            parsePointData(entity, groupCode, value) {
+                switch (groupCode) {
+                    case 10: entity.x = parseFloat(value); break;
+                    case 20: entity.y = parseFloat(value); break;
+                    case 30: entity.z = parseFloat(value); break;
+                }
+            }
+
+            parseLineData(entity, groupCode, value) {
+                switch (groupCode) {
+                    case 8: entity.layer = value; break;
+                    case 10: entity.x = parseFloat(value); break;
+                    case 20: entity.y = parseFloat(value); break;
+                    case 30: entity.z = parseFloat(value); break;
+                    case 11: entity.x2 = parseFloat(value); break;
+                    case 21: entity.y2 = parseFloat(value); break;
+                    case 31: entity.z2 = parseFloat(value); break;
+                    case 230: entity.extrusionZ = parseFloat(value); break;
+                }
+            }
+
+            parsePolylineData(polyline, groupCode, value) {
+                if (!polyline) return;
+                switch (groupCode) {
+                    case 8: entity.layer = value; break;
+                    case 70: polyline.closed = (parseInt(value) & 1) !== 0; break;
+                }
+            }
+
+            parseVertexData(vertex, groupCode, value) {
+                switch (groupCode) {
+                    case 8: entity.layer = value; break;
+                    case 10: vertex.x = parseFloat(value); break;
+                    case 20: vertex.y = parseFloat(value); break;
+                    case 30: vertex.z = parseFloat(value); break;
+                }
+            }
+
+            parseLWPolylineData(entity, groupCode, value) {
+                switch (groupCode) {
+                    case 8: entity.layer = value; break;
+                    // case 90: // 頂点数
+                    //     break;
+                    case 10:
+                        entity.vertices.push({
+                            x: parseFloat(value),
+                            y: 0
+                        });
+                        break;
+                    case 20:
+                        if (entity.vertices.length > 0) {
+                            entity.vertices[entity.vertices.length - 1].y = parseFloat(value);
+                        }
+                        break;
+                    case 42: entity.bulges[entity.vertices.length - 1] = parseFloat(value); break;
+                    case 70: entity.closed = (parseInt(value) & 1) !== 0; break;
+                }
+            }
+
+            parseCircleData(entity, groupCode, value) {
+                switch (groupCode) {
+                    case 8: entity.layer = value; break;
+                    case 10: entity.x = parseFloat(value); break;
+                    case 20: entity.y = parseFloat(value); break;
+                    case 30: entity.z = parseFloat(value); break;
+                    case 40: entity.radius = parseFloat(value); break;
+                    case 230: entity.extrusionZ = parseFloat(value); break;
+                }
+            }
+
+            parseArcData(entity, groupCode, value) {
+                switch (groupCode) {
+                    case 8: entity.layer = value; break;
+                    case 10: entity.x = parseFloat(value);
+                        entity.extrusionZ = 1;
+
+                        break;
+                    case 20: entity.y = parseFloat(value); break;
+                    case 30: entity.z = parseFloat(value); break;
+                    case 40: entity.radius = parseFloat(value); break;
+                    case 50: entity.startAngle = parseFloat(value); break;
+                    case 51: entity.endAngle = parseFloat(value); break;
+                    case 230: entity.extrusionZ = parseFloat(value); break;
+                }
+            }
+
+            parseEllipseData(entity, groupCode, value) {
+                switch (groupCode) {
+                    case 8: entity.layer = value; break;
+                    case 10: entity.center.x = parseFloat(value); break;
+                    case 20: entity.center.y = parseFloat(value); break;
+                    case 30: entity.center.z = parseFloat(value); break;
+                    case 11: entity.majorAxis.x = parseFloat(value); break;
+                    case 21: entity.majorAxis.y = parseFloat(value); break;
+                    case 31: entity.majorAxis.z = parseFloat(value); break;
+                    case 40: entity.ratio = parseFloat(value); break;
+                    case 41: entity.startParam = parseFloat(value); break;
+                    case 42: entity.endParam = parseFloat(value); break;
+                    case 230: entity.extrusionZ = parseFloat(value); break;
+                }
+            }
+
+
+            // MTEXTの処理を改善
+            processMTextValue(text) {
+                if (!text) return '';
+
+                // Unicode エスケープシーケンスの処理
+                text = text.replace(/\\U\+([0-9A-F]{4})/gi, (match, p1) =>
+                    String.fromCharCode(parseInt(p1, 16))
+                );
+
+                // 一般的なDXF特殊文字の置換
+                const specialChars = {
+                    '%%d': '°',    // 度数記号
+                    '%%p': '±',    // プラスマイナス
+                    '%%c': 'Ø',    // 直径記号
+                    '%%D': '°',    // 度数記号（大文字バージョン）
+                    '%%P': '±',    // プラスマイナス（大文字バージョン）
+                    '%%C': 'Ø'     // 直径記号（大文字バージョン）
+                };
+
+                // 特殊文字の置換を実行
+                Object.entries(specialChars).forEach(([key, value]) => {
+                    text = text.replace(new RegExp(key, 'g'), value);
+                });
+
+                // スタッキング文字（分数など）の処理
+                text = text.replace(/\{\\S([^;]+);([^}]+)\}/g, (match, above, below) =>
+                    `${above}/${below}`
+                );
+
+                // フォーマット制御文字の除去
+                text = text.replace(/\{\\[^}]*\}/g, '');
+
+                // 改行文字の処理
+                text = text.replace(/\\P/g, '\n');
+
+                return text;
+            }
+            parseSplineData0(entity, groupCode, value) {
+                // 初期化（エンティティ作成時に一度だけ実行）
+                if (!entity.controlPoints) entity.controlPoints = [];
+                if (!entity.fitPoints) entity.fitPoints = [];
+                if (!entity.knots) entity.knots = [];
+
+                switch (groupCode) {
+                    case 10: // 制御点のX座標
+                        entity.controlPoints.push({
+                            x: parseFloat(value),
+                            y: 0,
+                            w: 1.0
+                        });
+                        break;
+
+                    case 20: // 制御点のY座標
+                        if (entity.controlPoints.length > 0) {
+                            entity.controlPoints[entity.controlPoints.length - 1].y = parseFloat(value);
+                        }
+                        break;
+
+                    case 41: // 制御点の重み
+                        if (entity.controlPoints.length > 0) {
+                            entity.controlPoints[entity.controlPoints.length - 1].w = parseFloat(value);
+                        }
+                        break;
+
+                    case 11: // フィットポイントのX座標
+                        entity.fitPoints.push({
+                            x: parseFloat(value),
+                            y: 0
+                        });
+                        break;
+
+                    case 21: // フィットポイントのY座標
+                        if (entity.fitPoints.length > 0) {
+                            entity.fitPoints[entity.fitPoints.length - 1].y = parseFloat(value);
+                        }
+                        break;
+
+                    case 40: // ノット値
+                        entity.knots.push(parseFloat(value));
+                        break;
+
+                    case 70: // スプラインフラグ（ビット演算で高速化）
+                        const flags = parseInt(value);
+                        entity.flags = flags;
+                        entity.closed = flags & 1;
+                        entity.periodic = flags & 2;
+                        entity.rational = flags & 4;
+                        entity.planar = flags & 8;
+                        entity.linear = flags & 16;
+                        break;
+
+                    case 71: // 次数
+                        entity.degree = parseInt(value);
+                        break;
+
+                    case 72: // ノット数
+                        entity.numKnots = parseInt(value);
+                        break;
+
+                    case 73: // 制御点数
+                        entity.numControlPoints = parseInt(value);
+                        break;
+
+                    case 74: // フィットポイント数
+                        entity.numFitPoints = parseInt(value);
+                        break;
+                }
+            }
+            parseSplineData(entity, groupCode, value) {
+                switch (groupCode) {
+                    case 8: entity.layer = value; break;
+                    case 10: // 制御点のX座標
+                        if (!entity.controlPoints) entity.controlPoints = [];
+                        entity.controlPoints.push({
+                            x: parseFloat(value),
+                            y: 0,
+                            w: 1.0  // デフォルトの重み
+                        });
+                        break;
+                    case 20: // 制御点のY座標
+                        if (entity.controlPoints && entity.controlPoints.length > 0) {
+                            entity.controlPoints[entity.controlPoints.length - 1].y = parseFloat(value);
+                        }
+                        break;
+
+                    case 41: // 制御点の重み
+                        if (entity.controlPoints && entity.controlPoints.length > 0) {
+                            entity.controlPoints[entity.controlPoints.length - 1].w = parseFloat(value);
+                        }
+                        break;
+                    case 11: // フィットポイントのX座標
+                        if (!entity.fitPoints) entity.fitPoints = [];
+                        entity.fitPoints.push({ x: parseFloat(value), y: 0 });
+                        break;
+                    case 21: // フィットポイントのY座標
+                        if (entity.fitPoints && entity.fitPoints.length > 0) {
+                            entity.fitPoints[entity.fitPoints.length - 1].y = parseFloat(value);
+                        }
+                        break;
+                    case 40: // ノット値
+                        if (!entity.knots) entity.knots = [];
+                        entity.knots.push(parseFloat(value));
+                        break;
+                    case 70: // スプラインフラグ
+                        entity.flags = parseInt(value);
+                        // フラグの詳細なデコード
+                        entity.closed = (entity.flags & 1) === 1;  // ビット1: 閉じたスプライン
+                        entity.periodic = (entity.flags & 2) === 2;  // ビット2: 周期的なスプライン
+                        entity.rational = (entity.flags & 4) === 4;  // ビット3: 有理スプライン
+                        entity.planar = (entity.flags & 8) === 8;    // ビット4: 平面的
+                        entity.linear = (entity.flags & 16) === 16;  // ビット5: 線形
+                        break;
+                    case 71: // 次数
+                        entity.degree = parseInt(value);
+                        break;
+                    case 72: // ノット数
+                        entity.numKnots = parseInt(value);
+                        break;
+                    case 73: // 制御点数
+                        entity.numControlPoints = parseInt(value);
+                        break;
+                    case 74: // フィットポイント数
+                        entity.numFitPoints = parseInt(value);
+                        break;
+                }
+            }
+
+
+
+
+
+            finalizeEntity(entity, currentPolyline, skipEntity) {
+                if (!entity || skipEntity) return;
+
+                switch (entity.type) {
+                    case 'TEXT':
+                        // console.log(entity.value);
+                        if (entity.position.x !== undefined &&
+                            entity.position.y !== undefined &&
+                            entity.value) {
+                            this.texts.push({
+                                position: { x: entity.position.x, y: entity.position.y },
+                                height: entity.height || 2.5,
+                                value: entity.value,
+                                rotation: entity.rotation || 0,
+                                // 拡張情報の追加
+                                alignPoint: entity.alignPoint,
+                                style: entity.style,
+                                layer: entity.layer,
+                                horizontalJustification: entity.horizontalJustification,
+                                verticalJustification: entity.verticalJustification
+                            });
+                        }
+                        break;
+
+                    case 'MTEXT':
+                        if (entity.position.x !== undefined &&
+                            entity.position.y !== undefined &&
+                            entity.value) {
+                            this.mtexts.push({
+                                position: { x: entity.position.x, y: entity.position.y },
+                                height: entity.height || 2.5,
+                                value: this.processMTextValue(entity.value), // 特殊文字の処理
+                                width: entity.width,
+                                attachmentPoint: entity.attachmentPoint,
+                                layer: entity.layer,
+                                directionX: entity.directionX,
+                                directionY: entity.directionY
+                            });
+                        }
+                        break;
+                    case 'POINT':
+                        if (entity.x !== undefined && entity.y !== undefined) {
+                            this.points.push({
+                                id: this.points.length + 1,
+                                x: entity.x,
+                                y: entity.y,
+                                z: entity.z,
+                                layer: entity.layer
+                            });
+                        }
+                        break;
+                    case 'LINE':
+                        if (entity.x !== undefined && entity.y !== undefined &&
+                            entity.x2 !== undefined && entity.y2 !== undefined) {
+                            this.lines.push({
+                                start: { x: entity.x, y: entity.y },
+                                end: { x: entity.x2, y: entity.y2 },
+                                layer: entity.layer,
+                                extrusionZ: entity.extrusionZ
+                            });
+                        }
+                        break;
+                    case 'CIRCLE':
+                        if (entity.x !== undefined && entity.y !== undefined &&
+                            entity.radius !== undefined) {
+                            this.circles.push({
+                                center: { x: entity.x, y: entity.y },
+                                radius: entity.radius,
+                                extrusionZ: entity.extrusionZ,
+                                layer: entity.layer
+                            });
+                        }
+                        break;
+                    case 'ARC':
+
+                        this.arcs.push({
+                            center: { x: entity.x, y: entity.y },
+                            radius: entity.radius,
+                            startAngle: entity.startAngle || 0,
+                            endAngle: entity.endAngle || (2 * Math.PI),
+                            extrusionZ: entity.extrusionZ,
+                            layer: entity.layer
+                        });
+
+                        break;
+                    case 'ELLIPSE':
+                        this.ellipses.push({
+                            center: entity.center,
+                            majorAxis: entity.majorAxis,
+                            ratio: entity.ratio,
+                            startParam: entity.startParam || 0,
+                            endParam: entity.endParam || (2 * Math.PI),
+                            rotation: entity.rotation,
+                            extrusionZ: entity.extrusionZ,
+                            layer: entity.layer
+                        });
+                        break;
+                    case 'SPLINE':
+                        if (entity.controlPoints.length > 0 || entity.fitPoints.length > 0) {
+                            this.splines.push({
+                                controlPoints: entity.controlPoints,
+                                fitPoints: entity.fitPoints,
+                                knots: entity.knots,
+                                degree: entity.degree,
+                                flags: entity.flags,
+                                layer: entity.layer
+                            });
+                        }
+                        break;
+                }
+
+            }
+            getElementTypeOptions(type, index) {
+                return {
+                    color: document.querySelector(`#${type}-stroke`)?.value || '#000000',
+                    width: document.querySelector(`#${type}-strokeWidth`)?.value || '1',
+                    fillColor: document.querySelector(`#${type}-fill`)?.value,
+                    fillOpacity: document.querySelector(`#${type}-fillOpacity`)?.value || '0.1',
+                    noFill: document.querySelector(`#${type}-noFill`)?.checked || false,
+                    fontColor: document.getElementById(`fontColor`).value || 'gray',
+                    fontSize: document.getElementById(`fontSize`).value || '12',
+                    maxStrokeWidth: document.getElementById(`maxStrokeWidth`).value || '1',
+                    labelDisplay: document.getElementById(`labelDisplay`).checked || false,
+                    index: index
+                };
+            }
+            getLayerStyle(layer) {
+                const color = document.getElementById(`${layer}-color`)?.value || '#000000';
+                const strokeWidth = document.getElementById(`${layer}-strokeWidth`)?.value || 1;
+                return { color, strokeWidth };
+            }
+            redraw() {
+
+                this.svg.innerHTML = '';
+                const options = {
+                    fontSize: document.getElementById('fontSize').value,
+                    labelDisplay: document.getElementById('labelDisplay').checked,
+                    maxStrokeWidth: document.getElementById(`maxStrokeWidth`).value
+                };
+
+                if (this.showGrid) {
+                    this.drawer.drawGrid(this.viewBox);
+                }
+                if (this.showAxis) {
+                    this.drawer.drawAxis(this.viewBox);
+                }
+
+                // Points
+                this.points.forEach((point, index) => {
+                    const type = 'POINT';
+                    const options = this.getElementTypeOptions(type, index);
+                    const transformed = this.transformPoint(point);
+                    this.drawer.drawPoint(transformed, { ...options, index: point.id });
+                });
+
+                // テキストの描画
+                this.texts.forEach(text => {
+                    const type = 'TEXT';
+                    const options = this.getElementTypeOptions(type);
+                    this.drawer.drawText(text, options);
+                });
+
+                // MTEXTの描画
+                this.mtexts.forEach(mtext => {
+                    const type = 'MTEXT';
+                    const options = this.getElementTypeOptions(type);
+                    this.drawer.drawMText(mtext, options);
+                });
+
+                // Lines
+                this.lines.forEach((line, index) => {
+                    const layerStyle = this.getLayerStyle(line.layer);
+                    const type = 'LINE';
+                    const options = this.getElementTypeOptions(type, index);
+                    this.drawer.drawLine(
+                        this.transformPoint(line.start),
+                        this.transformPoint(line.end),
+                        { ...options, ...layerStyle, index, layer: line.layer }
+                    );
+                });
+
+                // Polylines
+                this.polylines.forEach((polyline, index) => {
+                    const layerStyle = this.getLayerStyle(polyline.layer);
+                    const type = 'POLYLINE';
+                    const options = this.getElementTypeOptions(type, index);
+                    const transformedVertices = polyline.vertices.map(v => this.transformPoint(v));
+                    this.drawer.drawPolyline(transformedVertices, { ...options, layerStyle, index });
+                });
+
+                // LWPolylines
+                this.lwpolylines.forEach((lwpolyline, index) => {
+                    const layerStyle = this.getLayerStyle(lwpolyline.layer);
+                    const type = 'LWPOLYLINE';
+                    const options = this.getElementTypeOptions(type, index);
+                    const transformed = {
+                        ...lwpolyline,
+                        vertices: lwpolyline.vertices.map(v => this.transformPoint(v))
+                    };
+                    this.drawer.drawLWPolyline(transformed, { ...options, layerStyle, index });
+                });
+
+                // Circles
+                this.circles.forEach((circle, index) => {
+                    const layerStyle = this.getLayerStyle(circle.layer);
+
+                    const type = 'CIRCLE';
+                    const options = this.getElementTypeOptions(type, index);
+                    let center = this.transformPoint(circle.center);
+                    if (circle.extrusionZ !== undefined && circle.extrusionZ !== 1) {
+                        center.x = -center.x;
+                    }
+                    this.drawer.drawCircle({ ...circle, center }, { ...options, layerStyle, index });
+                });
+
+                // Arcs
+                this.arcs.forEach((arc, index) => {
+                    const layerStyle = this.getLayerStyle(arc.layer);
+                    const type = 'ARC';
+                    const options = this.getElementTypeOptions(type, index);
+                    if (arc.extrusionZ < 0) {
+                        const xval = arc.center.x;
+                        arc.center.x = -xval;
+                        const tmp = arc.startAngle;
+                        arc.startAngle = -arc.endAngle - 180;
+                        arc.endAngle = -tmp - 180;
+                        arc.extrusionZ = 1;
+                    }
+                    const center = this.transformPoint(arc.center);
+                    this.drawer.drawArc(
+                        { ...arc, center },
+                        { ...options, layerStyle, index }
+                    );
+                });
+
+                // Ellipses
+                this.ellipses.forEach((ellipse, index) => {
+                    const layerStyle = this.getLayerStyle(ellipse.layer);
+                    const type = 'ELLIPSE';
+                    const options = this.getElementTypeOptions(type, index);
+                    this.drawer.drawEllipse(ellipse, { ...options, layerStyle, index });
+                });
+
+                // Splines
+                this.splines.forEach((spline, index) => {
+                    const layerStyle = this.getLayerStyle(spline.layer);
+
+                    const type = 'SPLINE';
+                    const options = this.getElementTypeOptions(type, index);
+                    this.drawer.drawSpline(spline, { ...options, layerStyle, index });
+                });
+
+                // Measurements
+                this.measurements.forEach(m => this.drawMeasurement(m));
+                this.updateTable();
+            }
+
+            transformPoint(point) {
+                return {
+                    x: point.x,
+                    y: -point.y  // Y軸を反転
+                };
+            }
+
+            updateViewBox() {
+                if (this.viewBox.x == undefined) this.viewwBox.x = 0;
+                if (this.viewBox.y == undefined) this.viewwBox.y = 0;    // 未定義の場合は0にする
+                if (this.viewBox.width == undefined) this.viewBox.width = 100;   // 未定義の場合は100にする
+                if (this.viewBox.height == undefined) this.viewBox.height = 100;  // 未定義の場合は100にする
+
+                const viewBoxStr = `${this.viewBox.x} ${this.viewBox.y} ${this.viewBox.width} ${this.viewBox.height}`;
+                this.svg.setAttribute('viewBox', viewBoxStr);
+
+                //this.redraw();
+            }
+
+            resetView() {
+                {
+
+                    // 1. まず各配列の有効性チェック
+                    if (!Array.isArray(this.points)) this.points = [];
+                    if (!Array.isArray(this.lines)) this.lines = [];
+                    if (!Array.isArray(this.polylines)) this.polylines = [];
+                    if (!Array.isArray(this.circles)) this.circles = [];
+                    if (!Array.isArray(this.arcs)) this.arcs = [];
+                    if (!Array.isArray(this.lwpolylines)) this.lwpolylines = [];
+                    if (!Array.isArray(this.ellipses)) this.ellipses = [];
+                    if (!Array.isArray(this.texts)) this.texts = [];
+                    if (!Array.isArray(this.splines)) this.splines = [];
+
+                    // 2. データがない場合のデフォルト値設定
+                    if (this.points.length === 0 && this.lines.length === 0 &&
+                        this.polylines.length === 0 && this.circles.length === 0 &&
+                        this.arcs.length === 0 && this.lwpolylines.length === 0 &&
+                        this.ellipses.length === 0 && this.texts.length === 0) {
+
+                        this.viewBox = {
+                            x: -100,
+                            y: -100,
+                            width: 2000,
+                            height: 2000
+                        };
+                        this.updateViewBox();
+                        return;
+                    }
+
+                    try {
+                        // 3. 各エンティティの座標を安全に収集
+                        const allPoints = [];
+
+                        // 各エンティティタイプごとに try-catch で囲む
+                        try {
+                            allPoints.push(...this.points.filter(p => p && typeof p.x === 'number' && typeof p.y === 'number'));
+                        } catch (e) {
+                            console.warn('Points processing error:', e);
+                        }
+
+                        try {
+                            allPoints.push(...this.lines.filter(l => l && l.start && l.end)
+                                .flatMap(line => [line.start, line.end]));
+                        } catch (e) {
+                            console.warn('Lines processing error:', e);
+                        }
+
+                        try {
+                            allPoints.push(...this.points.filter(p => p && typeof p.x === 'number' && typeof p.y === 'number'));
+                        } catch (e) {
+                            console.warn('Points processing error:', e);
+                        }
+
+                        try {
+                            allPoints.push(...this.lines.filter(l => l && l.start && l.end)
+                                .flatMap(line => [line.start, line.end]));
+                        } catch (e) {
+                            console.warn('Lines processing error:', e);
+                        }
+
+                        try {
+                            allPoints.push(...this.polylines.filter(p => p && p.vertices)
+                                .flatMap(poly => poly.vertices));
+                        } catch (e) {
+                            console.warn('Polylines processing error:', e);
+                        }
+
+                        try {
+                            allPoints.push(...this.lwpolylines.filter(p => p && p.vertices)
+                                .flatMap(lwpoly => lwpoly.vertices));
+                        } catch (e) {
+                            console.warn('LWPolylines processing error:', e);
+                        }
+
+                        try {
+                            allPoints.push(...this.splines.filter(p => p && p.getControlPoints())
+                                .flatMap(spln => spln.vertices));
+                        } catch (e) {
+                            console.warn('Splines processing error:', e);
+                        }
+                        try {
+                            allPoints.push(...this.texts.filter(t => t && t.position));
+                        } catch (e) {
+                            console.warn('Texts processing error:', e);
+                        }
+                        // try {
+                        //     allPoints.push(...this.splines.filter(p => p && p.controlPoints)
+                        //         .flatMap(spln => this.drawer.generateSplinePoints(spln)));
+                        // } catch (e) {
+                        //     console.warn('Splines processing error:', e);
+                        // }
+                        try {
+                            allPoints.push(...this.circles.filter(c => c && c.center && typeof c.radius === 'number')
+                                .flatMap(circle => [
+                                    circle.center,
+                                    { x: circle.center.x + circle.radius, y: circle.center.y },
+                                    { x: circle.center.x - circle.radius, y: circle.center.y },
+                                    { x: circle.center.x, y: circle.center.y + circle.radius },
+                                    { x: circle.center.x, y: circle.center.y - circle.radius }
+                                ]));
+                        } catch (e) {
+                            console.warn('Circles processing error:', e);
+                        }
+
+                        try {
+                            allPoints.push(...this.arcs.filter(a => a && a.center && typeof a.radius === 'number')
+                                .flatMap(arc => {
+                                    const points = [arc.center];
+                                    for (let a = arc.startAngle; a <= arc.endAngle; a += 90) {
+                                        if (a > arc.endAngle) break;
+                                        const rad = a * Math.PI / 180;
+                                        points.push({
+                                            x: arc.center.x + arc.radius * Math.cos(rad),
+                                            y: arc.center.y + arc.radius * Math.sin(rad)
+                                        });
+                                    }
+                                    points.push({
+                                        x: arc.center.x + arc.radius * Math.cos(arc.endAngle * Math.PI / 180),
+                                        y: arc.center.y + arc.radius * Math.sin(arc.endAngle * Math.PI / 180)
+                                    });
+                                    return points;
+                                }));
+                        } catch (e) {
+                            console.warn('Arcs processing error:', e);
+                        }
+
+                        try {
+                            allPoints.push(...this.ellipses.filter(e => e && e.center && e.majorAxis)
+                                .flatMap(ellipse => {
+                                    const majorLength = Math.sqrt(
+                                        Math.pow(ellipse.majorAxis.x, 2) +
+                                        Math.pow(ellipse.majorAxis.y, 2)
+                                    );
+                                    const minorLength = majorLength * ellipse.ratio;
+                                    return [
+                                        ellipse.center,
+                                        { x: ellipse.center.x + majorLength, y: ellipse.center.y },
+                                        { x: ellipse.center.x - majorLength, y: ellipse.center.y },
+                                        { x: ellipse.center.x, y: ellipse.center.y + minorLength },
+                                        { x: ellipse.center.x, y: ellipse.center.y - minorLength }
+                                    ];
+                                }));
+                        } catch (e) {
+                            console.warn('Ellipses processing error:', e);
+                        }
+
+                        // 4. 座標の範囲を安全に計算
+                        const validPoints = allPoints.filter(p => p && typeof p.x === 'number' && typeof p.y === 'number');
+
+                        if (validPoints.length === 0) {
+                            this.viewBox = { x: -100, y: -100, width: 200, height: 200 };
+                            this.updateViewBox();
+                            return;
+                        }
+
+                        const xValues = validPoints.map(p => p.x);
+                        const yValues = validPoints.map(p => p.y);
+                        const minX = Math.min(...xValues);
+                        const maxX = Math.max(...xValues);
+                        const minY = Math.min(...yValues);
+                        const maxY = Math.max(...yValues);
+
+                        const margin = Math.max(maxX - minX, maxY - minY) * 0.1;
+                        this.viewBox = {
+                            x: minX - margin,
+                            y: -maxY - margin,
+                            width: (maxX - minX) + margin * 2,
+                            height: (maxY - minY) + margin * 2
+                        };
+
+                        this.updateViewBox();
+
+                    } catch (error) {
+                        console.error('Reset view error:', error);
+                        // エラー時のフォールバック
+                        this.viewBox = { x: -100, y: -100, width: 200, height: 200 };
+                        this.updateViewBox();
+                    }
+                }
+            }
+            shouldShowLabels() {
+                // 要素タイプごとの設定に基づいて判定
+                labelDisplay: document.getElementById('labelDisplay')
+                return labelDisplay.checked; // または適切な条件
+            }
+
+            updateTable() {
+                const tbody = document.getElementById('pointsTable');
+                tbody.innerHTML = '';
+
+                if (!this.shouldShowLabels()) return;
+
+
+                // POINTの追加
+                this.points.forEach((point, index) => {
+                    const row = tbody.insertRow();
+                    row.insertCell().textContent = `P${point.id}`;
+                    row.insertCell().textContent = 'POINT';
+                    row.insertCell().textContent = point.x.toFixed(3);
+                    row.insertCell().textContent = point.y.toFixed(3);
+                    row.insertCell().textContent = '';
+                });
+
+                // LINEの追加
+                this.lines.forEach((line, index) => {
+                    const row = tbody.insertRow();
+                    row.insertCell().textContent = `L${index + 1}`;
+                    row.insertCell().textContent = 'LINE';
+                    row.insertCell().textContent = `${line.start.x.toFixed(3)} → ${line.end.x.toFixed(3)}`;
+                    row.insertCell().textContent = `${line.start.y.toFixed(3)} → ${line.end.y.toFixed(3)}`;
+                    const length = this.calculateDistance(line.start, line.end);
+                    row.insertCell().textContent = `長さ: ${length.toFixed(3)}`;
+                });
+
+                // LWPOLYLINEの追加
+                this.lwpolylines.forEach((lwpolyline, pIndex) => {
+                    lwpolyline.vertices.forEach((vertex, vIndex) => {
+                        const row = tbody.insertRow();
+                        row.insertCell().textContent = `LW${pIndex + 1}-${vIndex + 1}`;
+                        row.insertCell().textContent = 'LWPOLYLINE';
+                        row.insertCell().textContent = vertex.x.toFixed(3);
+                        row.insertCell().textContent = vertex.y.toFixed(3);
+
+                        let info = '';
+                        if (vIndex in lwpolyline.bulges) {
+                            info = `バルジ: ${lwpolyline.bulges[vIndex].toFixed(3)}`;
+                        }
+                        if (vIndex === lwpolyline.vertices.length - 1) {
+                            info += info ? ', ' : '';
+                            info += lwpolyline.closed ? '閉じた図形' : '終点';
+                        }
+                        row.insertCell().textContent = info;
+                    });
+                });
+                // POLYLINEの追加
+                this.polylines.forEach((polyline, pIndex) => {
+                    polyline.vertices.forEach((vertex, vIndex) => {
+                        const row = tbody.insertRow();
+                        row.insertCell().textContent = `PL${pIndex + 1}-${vIndex + 1}`;
+                        row.insertCell().textContent = 'POLYLINE';
+                        row.insertCell().textContent = vertex.x.toFixed(3);
+                        row.insertCell().textContent = vertex.y.toFixed(3);
+                        // 次の頂点がある場合は距離を計算
+                        if (vIndex < polyline.vertices.length - 1) {
+                            const nextVertex = polyline.vertices[vIndex + 1];
+                            const length = this.calculateDistance(vertex, nextVertex);
+                            row.insertCell().textContent = `次の点まで: ${length.toFixed(3)}`;
+                        } else {
+                            row.insertCell().textContent = '終点';
+                        }
+                    });
+                });
+
+                // CIRCLEの追加
+                this.circles.forEach((circle, index) => {
+                    const row = tbody.insertRow();
+                    row.insertCell().textContent = `C${index + 1}`;
+                    row.insertCell().textContent = 'CIRCLE';
+                    row.insertCell().textContent = circle.center.x.toFixed(3);
+                    row.insertCell().textContent = circle.center.y.toFixed(3);
+                    row.insertCell().textContent = `半径: ${circle.radius.toFixed(3)}`;
+                });
+
+                // ARCの追加
+                this.arcs.forEach((arc, index) => {
+                    const row = tbody.insertRow();
+                    row.insertCell().textContent = `A${index + 1}`;
+                    row.insertCell().textContent = 'ARC';
+                    row.insertCell().textContent = arc.center.x.toFixed(3);
+                    row.insertCell().textContent = arc.center.y.toFixed(3);
+                    row.insertCell().textContent =
+                        `半径: ${arc.radius.toFixed(3)}, ` +
+                        `開始角: ${arc.startAngle.toFixed(1)}°, ` +
+                        `終了角: ${arc.endAngle.toFixed(1)}°`;
+                });
+                // 楕円の追加
+                this.ellipses.forEach((ellipse, index) => {
+                    const majorLength = Math.sqrt(
+                        Math.pow(ellipse.majorAxis.x, 2) +
+                        Math.pow(ellipse.majorAxis.y, 2)
+                    );
+                    const row = tbody.insertRow();
+                    row.insertCell().textContent = `E${index + 1}`;
+                    row.insertCell().textContent = 'ELLIPSE';
+                    row.insertCell().textContent = ellipse.center.x.toFixed(3);
+                    row.insertCell().textContent = ellipse.center.y.toFixed(3);
+                    row.insertCell().textContent =
+                        `長軸: ${majorLength.toFixed(3)}, ` +
+                        `短軸比: ${ellipse.ratio.toFixed(3)}, ` +
+                        `開始角: ${(ellipse.startParam * 180 / Math.PI).toFixed(1)}°, ` +
+                        `終了角: ${(ellipse.endParam * 180 / Math.PI).toFixed(1)}°`;
+                });
+
+            }
+
+            exportCsv() {
+                if (this.points.length === 0 && this.lines.length === 0 &&
+                    this.polylines.length === 0 && this.circles.length === 0 &&
+                    this.arcs.length === 0 && this.lwpolylines.length === 0) return;
+
+                let csvRows = [
+                    ['Entity ID', 'Type', 'X', 'Y', 'Additional Data']
+                ];
+
+                // Points
+                this.points.forEach(point => {
+                    csvRows.push([
+                        `P${point.id}`,
+                        'POINT',
+                        point.x.toFixed(3),
+                        point.y.toFixed(3),
+                        ''
+                    ]);
+                });
+
+                // Lines
+                this.lines.forEach((line, index) => {
+                    const length = this.calculateDistance(line.start, line.end);
+                    csvRows.push([
+                        `L${index + 1}`,
+                        'LINE',
+                        `${line.start.x.toFixed(3)} -> ${line.end.x.toFixed(3)}`,
+                        `${line.start.y.toFixed(3)} -> ${line.end.y.toFixed(3)}`,
+                        `Length: ${length.toFixed(3)}`
+                    ]);
+                });
+
+                // LWPOLYLINEs
+                this.lwpolylines.forEach((lwpoly, pIndex) => {
+                    lwpoly.vertices.forEach((vertex, vIndex) => {
+                        let additionalData = '';
+                        if (vIndex in lwpoly.bulges) {
+                            additionalData = `bulge: ${lwpoly.bulges[vIndex].toFixed(3)}`;
+                        }
+                        if (vIndex === lwpoly.vertices.length - 1) {
+                            additionalData += (additionalData ? ', ' : '') +
+                                (lwpoly.closed ? 'closed' : 'end point');
+                        }
+                        csvRows.push([
+                            `LW${pIndex + 1}-${vIndex + 1}`,
+                            'LWPOLYLINE',
+                            vertex.x.toFixed(3),
+                            vertex.y.toFixed(3),
+                            additionalData
+                        ]);
+                    });
+                });
+                // Polylines
+                this.polylines.forEach((polyline, pIndex) => {
+                    polyline.vertices.forEach((vertex, vIndex) => {
+                        let additionalData = '';
+                        if (vIndex < polyline.vertices.length - 1) {
+                            const nextVertex = polyline.vertices[vIndex + 1];
+                            const length = this.calculateDistance(vertex, nextVertex);
+                            additionalData = `To next: ${length.toFixed(3)}`;
+                        } else {
+                            additionalData = 'End point';
+                        }
+                        csvRows.push([
+                            `PL${pIndex + 1}-${vIndex + 1}`,
+                            'POLYLINE',
+                            vertex.x.toFixed(3),
+                            vertex.y.toFixed(3),
+                            additionalData
+                        ]);
+                    });
+                });
+
+                // Circles
+                this.circles.forEach((circle, index) => {
+                    csvRows.push([
+                        `C${index + 1}`,
+                        'CIRCLE',
+                        circle.center.x.toFixed(3),
+                        circle.center.y.toFixed(3),
+                        `Radius: ${circle.radius.toFixed(3)}`
+                    ]);
+                });
+
+                // Arcs
+                this.arcs.forEach((arc, index) => {
+                    csvRows.push([
+                        `A${index + 1}`,
+                        'ARC',
+                        arc.center.x.toFixed(3),
+                        arc.center.y.toFixed(3),
+                        `Radius: ${arc.radius.toFixed(3)}, Start: ${arc.startAngle.toFixed(1)}deg, End: ${arc.endAngle.toFixed(1)}deg`
+                    ]);
+                });
+                // 楕円の追加
+                this.ellipses.forEach((ellipse, index) => {
+                    const majorLength = Math.sqrt(
+                        Math.pow(ellipse.majorAxis.x, 2) +
+                        Math.pow(ellipse.majorAxis.y, 2)
+                    );
+                    csvRows.push([
+                        `E${index + 1}`,
+                        'ELLIPSE',
+                        ellipse.center.x.toFixed(3),
+                        ellipse.center.y.toFixed(3),
+
+                        `majorAxis: ${majorLength.toFixed(3)}, ` +
+                        `ratio: ${ellipse.ratio.toFixed(3)}, ` +
+                        `startAngle: ${(ellipse.startParam * 180 / Math.PI).toFixed(1)}deg, ` +
+                        `endAngle: ${(ellipse.endParam * 180 / Math.PI).toFixed(1)}deg, ` +
+                        `extrusion: ${(ellipse.extrusionZ)}`
+                    ]);
+                });
+                const csv = csvRows.map(row => row.join(',')).join('\n');
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'entities.csv';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            exportSvg() {
+                // 現在のSVGを取得
+
+                const svg = document.getElementById('graph');
+                const viewBox = svg.getAttribute('viewBox').split(' ');
+                const width = Math.abs(parseFloat(viewBox[2]));
+                const height = Math.abs(parseFloat(viewBox[3]));
+
+                // クローンを作成して属性を設定
+                const clonedSvg = svg.cloneNode(true);
+                clonedSvg.setAttribute('width', width + 'mm');
+                clonedSvg.setAttribute('height', height + 'mm');
+
+                // SVGの内容をシリアライズ
+                const serializer = new XMLSerializer();
+                let svgString = serializer.serializeToString(clonedSvg);
+
+                // XML宣言とSVG名前空間を追加
+                svgString = '<?xml version="1.0" encoding="UTF-8"?>\n' + svgString;
+
+                // Blobを作成
+                const blob = new Blob([svgString], { type: 'image/svg+xml' });
+
+                // ダウンロードリンクを作成
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'drawing.svg';
+
+                // リンクをクリックしてダウンロード
+                document.body.appendChild(a);
+                a.click();
+
+                // クリーンアップ
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        // アプリケーションの初期化
+        const viewer = new DxfViewer();
+    </script>
+</body>
+
+</html>
